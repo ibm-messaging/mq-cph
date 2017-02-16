@@ -12,6 +12,7 @@ After extracting the code from this repository, you can build an image with the 
 make
 ```
 On Microsoft Windows, you can use the included VC++ 2005 project.
+On Linux disributions, g++ is required. After running make, the cph executable will be built in the local directiory. You may need to copy it to a folder in your executable path to be able to run cph from another path.
 
 # Usage
 
