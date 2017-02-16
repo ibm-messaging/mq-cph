@@ -12,7 +12,10 @@ After extracting the code from this repository, you can build an image with the 
 make
 ```
 On Microsoft Windows, you can use the included VC++ 2005 project.
+
 On Linux disributions, g++ is required. After running make, the cph executable will be built in the local directiory. You may need to copy it to a folder in your executable path to be able to run cph from another path.
+
+Before running make, make sure the INCLUDE environment variable is configured with the path to the MQ include headers directory. On Windows this would be something like "C:\Program Files\IBM\WebSphere MQ\Tools\c\include", on Linux it would be something like "/opt/mqm/inc".
 
 # Usage
 
