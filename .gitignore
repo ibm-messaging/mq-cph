@@ -1,1 +1,10 @@
+Makefile.mq
+buildAll.pl
+.jazzignore
+.project
+.cproject
+.settings
+Debug
 Release
+fixes
+cph
