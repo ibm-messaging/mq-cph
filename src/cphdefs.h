@@ -94,10 +94,6 @@ namespace cph {
 
 #elif defined(__IBMCPP__) && defined(__IBMCPP_TR1__)
 
-  // Include altered xlC system header, containing compile bug fix
-  extern "C++" {
-    #include "fixes/xhashtbl.hpp"
-  }
   #define tr1_inc(H) <H>
   #define tr1(F) std::tr1::F
 
