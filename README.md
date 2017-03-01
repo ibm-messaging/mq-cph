@@ -17,7 +17,11 @@ On Microsoft Windows, you can use the included VC++ 2005 project.
 On Linux disributions, g++ is required. After running make, the cph executable will be built in the local directory (./Release/...). If you specified an 'installdir' then the cph executable and the required property files (in the 'props' directory) will have been copied to that directory, otherwise you need to copy them yourself. 
 The cph executable needs to be run from the directory in which it is 'installed' to access the property files, unless the CPH_INSTALLDIR environment variable is set to indicate their location.
 
-Before running make, make sure the INCLUDE environment variable is configured with the path to the MQ include headers directory. On Windows this would be something like "C:\Program Files\IBM\WebSphere MQ\Tools\c\include", on Linux it would be something like "/opt/mqm/inc".
+Before running make, make sure the MQ header files are available.
+
+For Unix platforms, the makefile will assume they are in $MQ_INSTALLATION_DIR/inc or /opt/mqm/inc (if MQ_INSTALLATION_DIR is not defined). Alternatively you can set the 'INCLUDE' environment variable to a specific directory.
+
+On Windows, the include directory wil be something like "C:\Program Files\IBM\WebSphere MQ\Tools\c\include"
 
 # Usage
 
