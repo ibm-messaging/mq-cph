@@ -121,7 +121,7 @@ private:
   Thread(CPH_CONFIG* pConfig, bool const attach);
 };
 
-class ThreadAttach : Thread {
+class ThreadAttach : private Thread {
 
 public:
   ~ThreadAttach(){}
