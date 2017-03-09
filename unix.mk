@@ -52,7 +52,7 @@ MKDIRPART = if [ ! -d $(@D) ]; then echo "Creating output directory: $(@D)"; ech
 LN = ln -fs
 
 #Command to copy a file or directory
-CP = cp -vr
+CP = cp -r
 
 # Option to specify target as compiler output file
 OUT = -o $@

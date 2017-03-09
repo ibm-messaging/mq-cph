@@ -142,6 +142,7 @@ $(info Installation directory: $(installdir))
 # Recipe to copy built executable and properties file to install directory,
 # if installdir was specified on the command line
 %/install: %/$(CPH)
+	@echo "Copying files to install directory $(installdir)"
 	$(MKDIR) $(installdir)
 	$(CP) $(@D)/$(CPH) $(installdir)/$(CPH)
 	$(CP) $(PROPS)/* $(installdir)
