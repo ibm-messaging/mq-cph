@@ -111,6 +111,10 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
     protoCD.SharingConversations = 99999999;
     CPHTRACEMSG(pTrc, "Setting SHARECNV value to %d.", protoCD.SharingConversations)
 
+    /*Set the max messagelength on the clientconn channel to the maximum permissable */
+	protoCD.MaxMsgLength = 104857600;
+    CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
+	
     /* This needs to be set to at least version 9 for shared conv to work */
     protoCD.Version = 9;
 
