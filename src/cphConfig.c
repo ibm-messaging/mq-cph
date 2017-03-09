@@ -483,7 +483,7 @@ void cphConfigMarkLoaded(CPH_CONFIG *pConfig) {
     CPHTRACEENTRY(pConfig->pTrc)
 
     /*    configState = LOADED; */
-
+	
     if ( CPHTRUE == cphConfigIsEmpty(pConfig) ) {
         cphConfigInvalidParameter(pConfig, "No arguments specified!" );
     } else {
@@ -546,21 +546,31 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
 
     switch (i) {
       case 1 : /* -h */
-
-                cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
+        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
         cphLogPrintLn(pConfig->pLog, LOGINFO, "(use -hf to see more help options)" );
         cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribe(pConfig, CPHFALSE) );
         break;
       case 2 : /* -v */
-                cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
+        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
         break;
       case 3 : /* -hf */
-                cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
+        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
         cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribe(pConfig, CPHTRUE) );
         break;
       case 5 : /* -hm */
                 cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
-        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribeModules(pConfig, module, CPHTRUE) );
+				CPH_BUNDLE *module_bundle;
+				if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)){
+					if(CPHTRUE != cphConfigRegisterModule(pConfig, module)){
+						cphLogPrintLn(pConfig->pLog, LOGERROR, "Help for unknown module requested");
+						module_bundle=NULL;
+					} else {
+					    if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)) module_bundle=NULL;
+				    }
+				}
+				if(module_bundle != NULL){
+                    cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribeModule(pConfig, module_bundle, CPHTRUE) );
+				} 
         break;
     } /* end switch */
 
@@ -709,7 +719,7 @@ char *cphConfigDescribe(CPH_CONFIG *pConfig, int inFull) {
 }
 
 /*
-** Method: cphConfigDescribeModules
+** Method: cphConfigDescribeModule
 **
 **
 **
@@ -718,36 +728,17 @@ char *cphConfigDescribe(CPH_CONFIG *pConfig, int inFull) {
 ** Returns: a character string of help text
 **
 */
-char *cphConfigDescribeModules(CPH_CONFIG *pConfig, char *module, int inFull) {
+/* NB: It would be nice to have CPH_BUNDLE* here and not void * for the bundle pointer */
+char *cphConfigDescribeModule(CPH_CONFIG *pConfig, void *ptr, int inFull) {
     CPH_STRINGBUFFER *pSb;
     char *resString;
-    CPH_LISTITERATOR *pIterator;
-    int moduleFound = CPHFALSE;
 
     CPHTRACEENTRY(pConfig->pTrc)
 
     cphStringBufferIni(&pSb);
 
-    pIterator = cphArrayListListIterator(pConfig->bundles);
-    do {
-       CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);
-       CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;
-
-       if (0 == strcmp(module, pBundle->clazzName))
-       {
-          moduleFound = CPHTRUE;
-          cphConfigDescribeModuleAsText(pConfig, pSb, pBundle, inFull);
-          break;
-       }
-
-    } while (cphListIteratorHasNext(pIterator));
-    cphListIteratorFree(&pIterator);
-
-    if (CPHFALSE == moduleFound) {
-       cphStringBufferAppend(pSb, "UNKNOWN MODULE [");
-       cphStringBufferAppend(pSb, module);
-       cphStringBufferAppend(pSb, "]\n");
-  }
+    CPH_BUNDLE *pBundle = (CPH_BUNDLE*) ptr;
+    cphConfigDescribeModuleAsText(pConfig, pSb, pBundle, inFull);
 
     resString = (char *) malloc(1 + cphStringBufferGetLength(pSb)); // Also allow space for the terminating null
     if (NULL != resString) {
@@ -797,9 +788,9 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
       cphStringBufferAppend(pSb, "UNKNOWN MODULE []");
       return(CPHFALSE);
     }
-
+        cphStringBufferAppend(pSb, "\n");
         cphStringBufferAppend(pSb, pBundle->clazzName);
-        cphStringBufferAppend(pSb, ":\n");
+        cphStringBufferAppend(pSb, ":\n-----------------------------------------------------------------------------\n");
 
         if (CPHTRUE == inFull) {
             strcpy(sKeyName, pBundle->clazzName);
@@ -908,8 +899,39 @@ int cphConfigRegisterBaseModules(CPH_CONFIG *pConfig) {
 
     if ( (CPHTRUE != cphConfigRegisterModule(pConfig, "Config")) ||
          (CPHTRUE != cphConfigRegisterModule(pConfig, "Log")) ||
-         (CPHTRUE != cphConfigRegisterModule(pConfig, "ControlThread")) ||
-         (CPHTRUE != cphConfigRegisterModule(pConfig, "DestinationFactory"))
+	     (CPHTRUE != cphConfigRegisterModule(pConfig, "ControlThread")) ||
+		 (CPHTRUE != cphConfigRegisterModule(pConfig, "WorkerThread")) ||
+         (CPHTRUE != cphConfigRegisterModule(pConfig, "DestinationFactory")) ||
+	     (CPHTRUE != cphConfigRegisterModule(pConfig, "MQOpts"))  /*MQIWorkerThread*/
+       ) {
+        status = CPHFALSE;
+    }
+
+    CPHTRACEEXIT(pConfig->pTrc)
+    return(status);
+}
+
+/*
+** Method: cphConfigRegisterWorkerThreadModule
+**
+** This function process the property file for the -tc module
+** It does this by calling cphConfigRegisterModule.
+**
+** Input Parameters: pConfig - a pointer to the configuration control block
+**
+** Returns: CPHTRUE on successful exection, CPHFALSE otherwise
+**
+*/
+int cphConfigRegisterWorkerThreadModule(CPH_CONFIG *pConfig) {
+
+    int status = CPHTRUE;
+	char module[80] = {'\0'};
+	
+    CPHTRACEENTRY(pConfig->pTrc)
+		
+    if (CPHTRUE != cphConfigGetString(pConfig, module, "tc")) return(CPHFALSE);
+
+    if ( (CPHTRUE != cphConfigRegisterModule(pConfig, module))
        ) {
         status = CPHFALSE;
     }
@@ -1052,15 +1074,15 @@ int cphConfigStartTrace(CPH_CONFIG *pConfig) {
 int cphConfigFreeBundles(CPH_CONFIG *pConfig) {
     CPH_LISTITERATOR *pIterator;
     int status = CPHTRUE;
-
     CPHTRACEENTRY(pConfig->pTrc)
-
     if (NULL != pConfig->bundles) {
         pIterator = cphArrayListListIterator( pConfig->bundles);
         do {
             CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);
-            CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;
-            cphBundleFree(&pBundle);
+            if(NULL != pItem){
+				CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;						
+                cphBundleFree(&pBundle);
+		    }
         } while (cphListIteratorHasNext(pIterator));
         cphListIteratorFree(&pIterator);
     }

@@ -49,7 +49,6 @@ MQWTCONSTRUCTOR(Forwarder, true, true), pInQueue(NULL), pOutQueue(NULL) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) className.data());
 
     if(pOpts->timeout!=-1)
       cphLogPrintLn(pConfig->pLog, LOGWARNING,

@@ -50,5 +50,6 @@ typedef struct _cphbundle {
 void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName);
 void cphBundleIni(CPH_BUNDLE **ppBundle, CPH_CONFIG *pConfig, char *moduleName);
 int  cphBundleFree(CPH_BUNDLE **ppBundle);
+int cphBundleGetBundle(CPH_BUNDLE **pBundle, CPH_CONFIG *pConfig, char *module);
 
 #endif

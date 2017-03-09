@@ -54,7 +54,6 @@ MQWTCONSTRUCTOR(PublisherV6, true, false),
     if(pOpts->useRFH2)
       configError(pConfig, "(rf) Use of superfluous RFH2 headers not supported in V6 publisher.");
 
-    cphConfigRegisterModule(pConfig, (char*) className.data());
 
     if(CPHTRUE != cphConfigGetString(pConfig, streamQName, "jq"))
       configError(pConfig, "(jq) Could not determine the stream queue to use.");

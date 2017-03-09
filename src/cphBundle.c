@@ -35,6 +35,8 @@
 
 #include "cphUtil.h"
 #include "cphBundle.h"
+#include "cphArrayList.h"
+#include "cphListIterator.h"
 
 /*
 ** Method: cphBundleLoad
@@ -60,10 +62,6 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
 
     CPHTRACEENTRY(pConfig->pTrc)
 
-    /* Initiliase a new CPH_BUNDLE structure into which we read all the lines in the property file
-       as name/value pairs */
-    cphBundleIni(&pBundle, pConfig, moduleName);
-
     /* If we have a CPH_INSTALLDIR env var prefix prepend that to the property file name */
     dirLen = strlen(pConfig->cphInstallDir);
     if (0 < dirLen) {
@@ -86,6 +84,10 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
                "rt");
 #endif
     if (NULL != fp) {
+        /* Initiliase a new CPH_BUNDLE structure into which we read all the lines in the property file
+        as name/value pairs */
+        cphBundleIni(&pBundle, pConfig, moduleName);
+		
         char aLine[2048];
         while ( NULL != fgets(aLine, 1023, fp)) {
             char name[80];
@@ -152,16 +154,15 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
             }
         }
         fclose(fp);
+	    /* Add the pointer to this bundle into the array of resource bundle pointers */
+	    cphArrayListAdd(pConfig->bundles, pBundle);
     }
     else {
         sprintf(errorString, "ERROR couldn't open properties file: %s.", propFileName);
         cphLogPrintLn( pConfig->pLog, LOGERROR, errorString );
         loadedOK = CPHFALSE;
     }
-
-    /* Add the pointer to this bundle into the array of resource bundle pointers */
-    cphArrayListAdd(pConfig->bundles, pBundle);
-
+	
     CPHTRACEEXIT(pConfig->pTrc)
 
     if (CPHTRUE == loadedOK) return(pBundle);
@@ -229,5 +230,37 @@ int  cphBundleFree(CPH_BUNDLE **ppBundle) {
 
     return(status);
 }
+
+/*
+** Method: cphBundleGetBundle
+**
+** This function sets a pointer to a CPH_BUNDLE representing a registered module (if it exists)
+**
+** Input Paramters:         module - The name of the module for which a CPH_BUNDLE is being searched for. 
+**
+** Input/Output Parameters: ppBundle - double pointer to the CPH_BUNDLE. A pointer to a registered  
+**                          module's bundle is stored here, if it is found
+**
+** Returns: CPHTRUE on successful exection (CPH_BUNDLE for module found), CPHFALSE otherwise
+**
+*/
+int cphBundleGetBundle(CPH_BUNDLE **pBundle, CPH_CONFIG *pConfig, char *module) {
+    CPH_LISTITERATOR *pIterator;
+    int moduleFound = CPHFALSE;
+    pIterator = cphArrayListListIterator(pConfig->bundles);
+    do {
+       CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);
+       *pBundle = (CPH_BUNDLE*) pItem->item;
+
+       if (0 == strcmp(module, (*pBundle)->clazzName))
+       {
+          return CPHTRUE;
+       }
+
+    } while (cphListIteratorHasNext(pIterator));
+	return CPHFALSE;
+}
+
+
 
 

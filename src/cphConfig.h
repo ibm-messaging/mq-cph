@@ -85,10 +85,11 @@ int cphConfigValidateHelpOptions(CPH_CONFIG *pConfig);
 char * cphConfigGetVersion(CPH_CONFIG *pConfigl, char *versionString);
 
 char *cphConfigDescribe(CPH_CONFIG *pConfig, int inFull);
-char *cphConfigDescribeModules(CPH_CONFIG *pConfig, char *module, int inFull);
+char *cphConfigDescribeModule(CPH_CONFIG *pConfig, void *ptr, int inFull);
 int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, void *pBundle, int inFull);
 
 int cphConfigRegisterBaseModules(CPH_CONFIG *pConfig);
+int cphConfigRegisterWorkerThreadModule(CPH_CONFIG *pConfig);
 int cphConfigRegisterModule(CPH_CONFIG *pConfig, char *moduleName);
 void *cphConfigGetBundle(CPH_CONFIG *pConfig, char *moduleName);
 int cphConfigImportResources(CPH_CONFIG *pConfig, void *pBundle);

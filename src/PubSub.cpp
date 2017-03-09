@@ -40,7 +40,6 @@ bool Publisher::topicPerMsg;
 MQWTCONSTRUCTOR(Publisher, true, false), pDestFactory(pControlThread->pDestinationFactory) {
   CPHTRACEENTRY(pConfig->pTrc)
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) className.data());
 
     int temp;
     if(CPHTRUE != cphConfigGetBoolean(pConfig, &temp, (char*) "tp"))
@@ -95,7 +94,6 @@ MQWTCONSTRUCTOR(Subscriber, false, true) {
 
   // Populate static fields
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) className.data());
 
     int temp;
     if(CPHTRUE != cphConfigGetBoolean(pConfig, &temp, (char*) "du"))

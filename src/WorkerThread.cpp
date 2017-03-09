@@ -102,7 +102,6 @@ WorkerThread::WorkerThread(ControlThread *pControlThread, std::string className)
 
   // Initialise static configuration variables (only if we're the first WorkerThread to be created).
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) "WorkerThread");
 
     if (CPHTRUE != cphConfigGetFloat(pConfig, &rate, "rt"))
       configError(pConfig, "Could not determine target rate (rt).");

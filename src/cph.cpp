@@ -99,9 +99,10 @@ int main(int argc, char * argv[]) {
 
   /* Read the property files for the "fixed" modules */
   if (CPHTRUE == cphConfigRegisterBaseModules(myConfig)) {
-
     /* Read the command line arguments */
     cphConfigReadCommandLine(myConfig, argc, argv);
+	cphConfigRegisterWorkerThreadModule(myConfig);
+    cphConfigMarkLoaded(myConfig);
 
     /* Start trace if it has been requested */
     cphConfigStartTrace(myConfig);
@@ -121,7 +122,8 @@ int main(int argc, char * argv[]) {
       }
     }
   }
-  /* Relase the configuration control block */
+
+  /* Release the configuration control block */
   cphConfigFree(&myConfig);
 
   /* Dispose of the trace structure if trace was compiled in */

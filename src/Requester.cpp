@@ -50,7 +50,6 @@ MQWTCONSTRUCTOR(Requester, true, true) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) className.data());
 
     if(pOpts->commitFrequency>1)
       configError(pConfig, "(cc) A commit-count greater than one wont work for Requester. Duh!");

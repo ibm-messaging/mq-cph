@@ -61,7 +61,7 @@ MQIWorkerThread::MQIWorkerThread(ControlThread* pControlThread, string className
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) "MQOpts");
+
     pOpts = new MQIOpts(pConfig, putter, getter);
 
     /* Load the server or client MQ library as appropriate */

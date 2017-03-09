@@ -127,7 +127,6 @@ MQWTCONSTRUCTOR(Responder, true, true), pInQueue(NULL),
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){
-    cphConfigRegisterModule(pConfig, (char*) className.data());
 
     if(pOpts->commitFrequency>1)
       cphLogPrintLn(pConfig->pLog, LOGWARNING,

@@ -64,7 +64,6 @@ MQWTCONSTRUCTOR(SubscriberV6, false, true){
     if(pOpts->readAhead)
       configError(pConfig, "(jy) Use of read-ahead not supported in V6 subscriber.");
 
-    cphConfigRegisterModule(pConfig, (char*) className.data());
     if(CPHTRUE != cphConfigGetString(pConfig, streamQName, "jq"))
       configError(pConfig, "(jq) Could not determine the stream queue to use.");
     CPHTRACEMSG(pConfig->pTrc, (char*) "Stream queue: %s", streamQName)
