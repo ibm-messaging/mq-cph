@@ -545,7 +545,9 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
         }
 
     switch (i) {
-      case 1 : /* -h */
+		CPH_BUNDLE *module_bundle;
+
+	  case 1 : /* -h */
         cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
         cphLogPrintLn(pConfig->pLog, LOGINFO, "(use -hf to see more help options)" );
         cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribe(pConfig, CPHFALSE) );
@@ -559,7 +561,6 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
         break;
       case 5 : /* -hm */
                 cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
-				CPH_BUNDLE *module_bundle;
 				if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)){
 					if(CPHTRUE != cphConfigRegisterModule(pConfig, module)){
 						cphLogPrintLn(pConfig->pLog, LOGERROR, "Help for unknown module requested");
@@ -731,13 +732,14 @@ char *cphConfigDescribe(CPH_CONFIG *pConfig, int inFull) {
 /* NB: It would be nice to have CPH_BUNDLE* here and not void * for the bundle pointer */
 char *cphConfigDescribeModule(CPH_CONFIG *pConfig, void *ptr, int inFull) {
     CPH_STRINGBUFFER *pSb;
+	CPH_BUNDLE *pBundle;
     char *resString;
 
     CPHTRACEENTRY(pConfig->pTrc)
 
     cphStringBufferIni(&pSb);
 
-    CPH_BUNDLE *pBundle = (CPH_BUNDLE*) ptr;
+    pBundle = (CPH_BUNDLE*) ptr;
     cphConfigDescribeModuleAsText(pConfig, pSb, pBundle, inFull);
 
     resString = (char *) malloc(1 + cphStringBufferGetLength(pSb)); // Also allow space for the terminating null

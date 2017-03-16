@@ -84,11 +84,11 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
                "rt");
 #endif
     if (NULL != fp) {
+		char aLine[2048];
         /* Initiliase a new CPH_BUNDLE structure into which we read all the lines in the property file
         as name/value pairs */
         cphBundleIni(&pBundle, pConfig, moduleName);
 		
-        char aLine[2048];
         while ( NULL != fgets(aLine, 1023, fp)) {
             char name[80];
             char *token;
