@@ -9,7 +9,7 @@ MQ-CPH (the IBM MQ C Performance Harness) is a performance test tool for [IBM® 
 After extracting the code from this repository, you can build an image with the latest version of MQ (and copy the executable and all required property files to an installation directory, e.g. ~/cph) using the following commands:
 
 ```
-export installdir ~/cph
+export installdir=~/cph
 make
 ```
 On Microsoft Windows, you can use the included VC++ 2005 project.
