@@ -70,14 +70,14 @@
 
 /* Function prototypes */
 void cphUtilSleep( int mSecs );
-CPH_TIME cphUtilGetNow();
+CPH_TIME cphUtilGetNow(void);
 int cphUtilTimeIni(CPH_TIME *pTime);
 long cphUtilGetTimeDifference(CPH_TIME time1, CPH_TIME time2);
 int cphUtilTimeCompare(CPH_TIME time1, CPH_TIME time2);
 void cphCopyTime(CPH_TIME *pTimeDst, CPH_TIME *pTimeSrc);
 int cphUtilTimeIsZero(CPH_TIME pTime);
-cph_pthread_t cphUtilGetThreadId();
-int cphUtilGetProcessId();
+cph_pthread_t cphUtilGetThreadId(void);
+int cphUtilGetProcessId(void);
 void cphUtilSigInt(int dummysignum);
 int cphUtilGetTraceTime(char *chTime);
 char *cphUtilRTrim(char *aLine);

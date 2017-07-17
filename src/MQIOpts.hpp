@@ -89,6 +89,7 @@ public:
   char destinationPrefix[MQ_Q_NAME_LENGTH];
   MQLONG messageSize;
   unsigned int commitFrequency; //How frequently to commit transactions. 0 means non-transactional
+  bool commitPGPut;
   bool useRFH2;
   bool useMessageHandle;
 

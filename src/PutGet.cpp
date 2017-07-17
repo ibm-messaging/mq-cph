@@ -115,7 +115,7 @@ void PutGet::msgOneIteration(){
    * otherwise we won't be able to get the message back again.
    * This means we're doing 2 commits per iteration.
    */
-  if(pOpts->commitFrequency) pConnection->commitTransaction();
+  if(pOpts->commitPGPut) pConnection->commitTransaction();
 
   //Get it back
   MQMD getMD = pOpts->getGetMD();

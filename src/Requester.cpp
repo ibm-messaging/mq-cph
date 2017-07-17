@@ -161,7 +161,7 @@ void Requester::msgOneIteration(){
 
   // Commit transaction if necessary,
   // otherwise we won't be able to get our reply.
-  if(pOpts->commitFrequency) pConnection->commitTransaction();
+  if(pOpts->commitPGPut) pConnection->commitTransaction();
 
   // Get reply
   MQMD getMD = pOpts->getGetMD();

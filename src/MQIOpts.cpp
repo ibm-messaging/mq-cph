@@ -46,6 +46,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 
   char temp[80];
   int tempInt;
+  bool txSet=false;
 
   /*
    * ------------------
@@ -171,10 +172,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
     if(tempInt==CPHTRUE){
       if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &commitFrequency, "cc"))
         configError(pConfig, "(cc) Cannot retrieve commit count value.");
+	  txSet=true;
       CPHTRACEMSG(pTrc, "Commit count: %d", commitFrequency)
     } else
       commitFrequency = 0;
-
+	
     //Message Size
     if (CPHTRUE != cphConfigGetInt(pConfig, (int *) &messageSize, "ms"))
       configError(pConfig, "(ms) Cannot retrieve message size.");
@@ -198,7 +200,43 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 
     memcpy(protoMD.Format, (useRFH2||useMessageHandle) ? MQFMT_RF_HEADER_2 : MQFMT_STRING, (size_t)MQ_FORMAT_LENGTH);
   }
-
+  
+  /*
+   * --------------------------------
+   * Put/Get pair transaction options
+   * --------------------------------
+   */
+  
+  //For modules that loop round Put/Get, (PutGet & Requester)
+  //we can specify more granular transaction scopes with the
+  //txp & txg parms (these are mutually exclusive to the tx parm)
+  if(putter && getter){  
+	 char module[80] = {'\0'};
+	 cphConfigGetString(pConfig, module, "tc");
+	 if(strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0){
+    
+        commitPGPut = false;
+	 
+	    if(CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txp")){
+		    CPHTRACEMSG(pConfig->pTrc, "txp flag set: %s", tempInt ? "yes" : "no")
+		    if(tempInt == CPHTRUE){
+		 	   if(txSet) configError(pConfig, "tx and txp flags cannot both be true");
+			   commitPGPut = true;
+		    } else {
+		 	   if(txSet) commitPGPut = true;
+		    }
+	    }
+	 
+	    if(CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txg")){
+		    CPHTRACEMSG(pConfig->pTrc, "txg flag set: %s", tempInt ? "yes" : "no")
+		    if(tempInt == CPHTRUE){
+		 	   if(txSet) configError(pConfig, "tx and txg flags cannot both be true");
+			   commitFrequency = 1;
+		    }
+	    }
+	 } 
+  }
+  
   /*
    * -----------
    * Put Options
@@ -221,7 +259,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
     MQPMO protoPMO = {MQPMO_DEFAULT};
     protoPMO.Version = MQPMO_VERSION_3;
     protoPMO.Options |= MQPMO_NEW_MSG_ID | MQPMO_NEW_CORREL_ID;
-    if (commitFrequency>0) protoPMO.Options |= MQPMO_SYNCPOINT;
+    if (txSet  || commitPGPut) protoPMO.Options |= MQPMO_SYNCPOINT;
     pmo = protoPMO;
 
     putMD = protoMD;
