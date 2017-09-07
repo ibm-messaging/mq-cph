@@ -385,7 +385,12 @@ void ControlThread::run() {
     while(duration>0 && runningWorkers>0){
       CPHTRACEMSG(pTrc, "Sleeping for %ums...", duration)
       cphUtilSleep(duration);
-      if (cphControlCInvoked != 0) throw ShutdownException();
+      if (cphControlCInvoked != 0) {
+    	  sprintf(tempStr, "cphControlCInvoked flag triggered: %d - Signal detected", cphControlCInvoked);
+          cphLogPrintLn(pLog, LOGERROR, tempStr);
+          CPHTRACEMSG(pTrc, tempStr)
+    	  throw ShutdownException();
+      }
 
       remaining = (long) runLength - cphUtilGetTimeDifference(cphUtilGetNow(), startTime);
       if(remaining < 0) remaining = 0;
@@ -397,6 +402,7 @@ void ControlThread::run() {
       cphLogPrintLn(pLog, LOGVERBOSE, "Timer : Runlength expired" );
 
   } catch (ShutdownException) {
+    cphLogPrintLn(pLog, LOGERROR, "Caught shutdown exception." );
     CPHTRACEMSG(pTrc, "Caught shutdown exception.")
   } catch (std::exception &e) {
     sprintf(tempStr, "[ControlThread] Caught exception: %s", e.what());

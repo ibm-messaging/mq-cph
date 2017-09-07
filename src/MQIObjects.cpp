@@ -331,7 +331,10 @@ void MQIObject::get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
   MQLONG mqcc=0, mqrc=0;
 
   while(true){
-    pConn->pCurrentThread->checkShutdown();
+
+	//Removing check here, which was likely inserted to speed up controlled shutdown (Ctrl-c)
+    //It has the side affect of the requester stopping before obtaining its final message
+    //pConn->pCurrentThread->checkShutdown();
 
     if(waitUnlimited) gmo.WaitInterval = CPH_TIMEOUT_UNLIMITED;
     CPHTRACEMSG(pConn->pTrc, "About to call MQGET.")

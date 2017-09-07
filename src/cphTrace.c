@@ -213,7 +213,11 @@ int cphTraceLine(CPH_TRACE *pTrace, CPH_TRACETHREAD *pTraceThread) {
     char chTime[80];
 
     cphUtilGetTraceTime(chTime);
+#if defined(CPH_UNIX)
+    fprintf(pTrace->tFp, "%s\t%lu%*s%s\n", chTime, pTraceThread->threadId, pTraceThread->indent+1, " ", pTraceThread->buffer);
+#else
     fprintf(pTrace->tFp, "%s\t%d%*s%s\n", chTime, pTraceThread->threadId, pTraceThread->indent+1, " ", pTraceThread->buffer);
+#endif
     fflush(pTrace->tFp);
     return(CPHTRUE);
 }
