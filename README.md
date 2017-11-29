@@ -42,6 +42,14 @@ The cph executable needs to be run from the directory in which it is 'installed'
 
 Please see ([cph.pdf](cph.pdf))
 
+# Sample File
+
+samples/rr_1 contains files that can be used to setup a queue manager for use with requester/responder tests.
+
+Note that if you are using these scripts to setup a queue manager for use with the MQ-CPH blog article
+["MQ-CPH Performance Harness Released on GitHub"](https://www.ibm.com/developerworks/community/blogs/messaging/entry/MQ_C_Performance_Harness_Released_on_GitHub?lang=en)
+then you should use the cph command lines in samples/rr_1/ReadMe, instead of the ones in the blog article. The queue manager setup has been changed to require a userid/password on the client connected requesters.  
+
 # Troubleshooting
 
 Please see ([cph.pdf](cph.pdf))
