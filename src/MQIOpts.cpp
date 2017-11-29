@@ -75,6 +75,14 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 
   MQCNO protoCNO = {MQCNO_DEFAULT};
   MQCD protoCD = {MQCD_CLIENT_CONN_DEFAULT};
+  MQCSP protoCSP = {MQCSP_DEFAULT};
+
+  //CNO Will be updated to version 4 or 5 if SSL or User/Password authentication is in use
+  protoCNO.Version = MQCNO_VERSION_2;
+
+  /* This needs to be set to at least version 9 for shared conv to work */
+  protoCD.Version = 9;
+
 
   if(connType==REMOTE){
     //Channel name
@@ -97,7 +105,17 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
       configError(pConfig, "(jl) Default CipherSpec cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Cipher Spec: %s", cipherSpec)
 
-    protoCNO.Version = MQCNO_VERSION_2;
+    //Username
+    if (CPHTRUE != cphConfigGetString(pConfig, username, "us"))
+      configError(pConfig, "(us) Default username cannot be retrieved.");
+    CPHTRACEMSG(pTrc, "Username: %s", username)
+
+    //Password
+    if (CPHTRUE != cphConfigGetString(pConfig, password, "pw"))
+      configError(pConfig, "(pw) Default password cannot be retrieved.");
+    CPHTRACEMSG(pTrc, "Password: %s", password)
+
+
     CPHTRACEMSG(pTrc, "Setting up MQCD for remote connection.")
 
     char tempName[MQ_CONN_NAME_LENGTH];
@@ -116,8 +134,6 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 	protoCD.MaxMsgLength = 104857600;
     CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
 	
-    /* This needs to be set to at least version 9 for shared conv to work */
-    protoCD.Version = 9;
 
     //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
     if (strcmp(cipherSpec,"") != 0) {
@@ -132,6 +148,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
       //            Version 7 of MQCD(Channel Definition),
       //            Version 1 of MQCSP(Security Parameters) and
       //            Version 4 of MQSCO (SSL Configuration Options)
+
       protoCNO.Version = MQCNO_VERSION_4;
       //MQCD/protoCD set to version 9 above
       //protoSCO.Version = MQSCO_VERSION_4;   //Not used
@@ -142,6 +159,26 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
       //Were only currently setting values in the MQCD, so might not need to bother setting the MQCSP and MQSCO into the MQCNO
       //protoCNO.SSLConfigPtr = &protoSCO;
     }
+
+    // Setup userid and password if they have been defined
+    if (strcmp(username,"") != 0) {
+        protoCSP.CSPUserIdPtr = &username;
+        protoCSP.CSPUserIdLength = strlen(username);
+
+        if (strcmp(password,"") != 0) {
+        	protoCSP.CSPPasswordPtr = &password;
+        	protoCSP.CSPPasswordLength = strlen(password);
+        }
+
+        protoCSP.AuthenticationType = MQCSP_AUTH_USER_ID_AND_PWD;
+
+        //Username/password authentication requires MQCNO_VERSION 5
+        protoCNO.Version = MQCNO_VERSION_5;
+
+        csp = protoCSP;
+        protoCNO.SecurityParmsPtr = &csp;
+    }
+
     cd = protoCD;
     protoCNO.ClientConnPtr = &cd;
   } else if(connType==FASTPATH) {

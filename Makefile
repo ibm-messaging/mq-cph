@@ -111,7 +111,7 @@ Debug \
 Release
 
 # Make debug a trace build
-Debug_CCFLAGS += $(SYM)CPH_DOTRACE
+Debug_CCFLAGS += $(SYM)CPH_DOTRACE -g
 Release_CCFLAGS += $(SYM)NDEBUG
 
 # Include dependency files
