@@ -163,11 +163,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
     // Setup userid and password if they have been defined
     if (strcmp(username,"") != 0) {
         protoCSP.CSPUserIdPtr = &username;
-        protoCSP.CSPUserIdLength = strlen(username);
+        protoCSP.CSPUserIdLength = (MQLONG) strlen(username);
 
         if (strcmp(password,"") != 0) {
         	protoCSP.CSPPasswordPtr = &password;
-        	protoCSP.CSPPasswordLength = strlen(password);
+        	protoCSP.CSPPasswordLength = (MQLONG) strlen(password);
         }
 
         protoCSP.AuthenticationType = MQCSP_AUTH_USER_ID_AND_PWD;
