@@ -120,16 +120,21 @@ CPH_THREAD_RUN _thread_run(void* t) {
 bool Thread::start(){
   CPHTRACEENTRY(pConfig->pTrc)
   bool rc = true;
+  int ret = 0;
+
   if(!shutdown && id==0){
 #ifdef CPH_WINDOWS
     DWORD tid;
     if(NULL == CreateThread(NULL, 0, _thread_run, this, 0, &tid)){
 #else //#elif defined(CPH_UNIX)
     pthread_t tid;
-    if(pthread_create(&tid, NULL, _thread_run, this)!=0){
+    if ((ret = pthread_create(&tid, NULL, _thread_run, this)) != 0) {
 #endif
       CPHTRACEMSG(pConfig->pTrc, (char*) "Failed to spawn new thread.")
-      rc = false;
+	  if (ret) {
+		  CPHTRACEMSG(pConfig->pTrc, (char*) "Return value from creating thread: %d", ret)
+	  }
+	  rc = false;
     }
 #ifdef CPH_OSX
     id = (uint64_t) pthread_mach_thread_np(tid);
