@@ -333,7 +333,16 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 
     MQGMO protoGMO = {MQGMO_DEFAULT};
     protoGMO.Version = MQGMO_VERSION_3;
-    protoGMO.Options = MQGMO_WAIT | MQGMO_CONVERT;
+	protoGMO.Options = MQGMO_WAIT;
+	
+	//Set data conversion if required
+	if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "cv"))
+		 configError(pConfig, "(cv) Cannot retrieve data conversion option.");
+	
+	if(CPHTRUE == tempInt) {
+	   protoGMO.Options |= MQGMO_CONVERT;
+    }
+	
     if(commitFrequency>0) protoGMO.Options |= MQGMO_SYNCPOINT;
     if(useRFH2) protoGMO.Options |= MQGMO_PROPERTIES_FORCE_MQRFH2;
     protoGMO.WaitInterval = timeout==-1 ? MQWI_UNLIMITED : timeout * 1000;
