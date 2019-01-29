@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ MQWTCONSTRUCTOR(Responder, true, true), pInQueue(NULL),
   if(threadNum==0){
 
     if(pOpts->commitFrequency>1)
-      cphLogPrintLn(pConfig->pLog, LOGWARNING,
+      cphLogPrintLn(pConfig->pLog, LOG_WARNING,
           "\t******************************************************************************\n"
           "\t* WARNING - (cc) Setting commit-count to greater than 1 for Responders could *\n"
           "\t*           cause your test to lock up if you don't have enough Requesters.  *\n"
@@ -137,7 +137,7 @@ MQWTCONSTRUCTOR(Responder, true, true), pInQueue(NULL),
           "\t******************************************************************************");
 
     if(pOpts->timeout!=-1)
-      cphLogPrintLn(pConfig->pLog, LOGWARNING,
+      cphLogPrintLn(pConfig->pLog, LOG_WARNING,
           "\t******************************************************************************\n"
           "\t* WARNING - (to) Setting the MQGET timeout to something other than -1        *\n"
           "\t*           (i.e. wait indefinitely) for Responders is probably not what you *\n"
@@ -168,7 +168,7 @@ MQWTCONSTRUCTOR(Responder, true, true), pInQueue(NULL),
 
     // Input (request) queue.
     if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, "iq")){
-      cphLogPrintLn(pConfig->pLog, LOGINFO,
+      cphLogPrintLn(pConfig->pLog, LOG_INFO,
           "No input (request) queue prefix parameter (-iq) detected. Falling back on destination prefix (-d).");
       strncpy(iqPrefix, pOpts->destinationPrefix, MQ_Q_NAME_LENGTH);
     }

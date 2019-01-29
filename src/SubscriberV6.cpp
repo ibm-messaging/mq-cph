@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -396,16 +396,16 @@ void SubscriberV6::checkForResponse(PMQMD pMd, MQIMessage * pMessage){
       /***********************************************************/
       char messageString[1024];
       sprintf(messageString, "Error response returned :\n %s\n", pNameValueString);
-      cphLogPrintLn(pConfig->pLog, LOGERROR, messageString);
+      cphLogPrintLn(pConfig->pLog, LOG_ERROR, messageString);
 
       if( pMessage->messageLen != pMQRFHeader->StrucLength ){
         sprintf(messageString, "Original Command String:\n");
-        cphLogPrintLn(pConfig->pLog, LOGERROR, messageString);
+        cphLogPrintLn(pConfig->pLog, LOG_ERROR, messageString);
 
         pNameValueString = (PMQCHAR)(pMessage->buffer + pMQRFHeader->StrucLength);
         strncpy(messageString, pNameValueString, pMessage->messageLen - pMQRFHeader->StrucLength);
         messageString[pMessage->messageLen - pMQRFHeader->StrucLength] = '\0';
-        cphLogPrintLn(pConfig->pLog, LOGERROR, messageString);
+        cphLogPrintLn(pConfig->pLog, LOG_ERROR, messageString);
       }
     }
   }

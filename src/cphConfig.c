@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ void cphConfigReadCommandLine(CPH_CONFIG * pConfig, int argc, char *argv[]) {
 
   /* configState = LOADING; */
 
-    cphLogPrintLn(pConfig->pLog, LOGINFO, cmdLine );
+    cphLogPrintLn(pConfig->pLog, LOG_INFO, cmdLine );
 
 
     /* cphConfigListNameVal(pConfig->options); */
@@ -439,7 +439,7 @@ void cphConfigInvalidParameter(CPH_CONFIG *pConfig, char* error) {
 
     strcpy(errorString, "Invalid parameter: ");
     strcat(errorString, error);
-    cphLogPrintLn(pConfig->pLog, LOGERROR, errorString );
+    cphLogPrintLn(pConfig->pLog, LOG_ERROR, errorString );
 
     pConfig->inValid = CPHTRUE;
 
@@ -548,29 +548,29 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
 		CPH_BUNDLE *module_bundle;
 
 	  case 1 : /* -h */
-        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
-        cphLogPrintLn(pConfig->pLog, LOGINFO, "(use -hf to see more help options)" );
-        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribe(pConfig, CPHFALSE) );
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, "(use -hf to see more help options)" );
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribe(pConfig, CPHFALSE) );
         break;
       case 2 : /* -v */
-        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
         break;
       case 3 : /* -hf */
-        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
-        cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribe(pConfig, CPHTRUE) );
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribe(pConfig, CPHTRUE) );
         break;
       case 5 : /* -hm */
-                cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigGetVersion(pConfig, versionString));
+                cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
 				if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)){
 					if(CPHTRUE != cphConfigRegisterModule(pConfig, module)){
-						cphLogPrintLn(pConfig->pLog, LOGERROR, "Help for unknown module requested");
+						cphLogPrintLn(pConfig->pLog, LOG_ERROR, "Help for unknown module requested");
 						module_bundle=NULL;
 					} else {
 					    if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)) module_bundle=NULL;
 				    }
 				}
 				if(module_bundle != NULL){
-                    cphLogPrintLn(pConfig->pLog, LOGINFO, cphConfigDescribeModule(pConfig, module_bundle, CPHTRUE) );
+                    cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribeModule(pConfig, module_bundle, CPHTRUE) );
 				} 
         break;
     } /* end switch */
@@ -1019,7 +1019,7 @@ int cphConfigImportResources(CPH_CONFIG *pConfig, void *ptr) {
             }
 
             if (CPHTRUE != cphNameValAdd(&pConfig->defaultOptions, keyBase, bundleNameVal->value)) {
-               cphLogPrintLn(pConfig->pLog, LOGERROR, "ERROR setting default option.");
+               cphLogPrintLn(pConfig->pLog, LOG_ERROR, "ERROR setting default option.");
                status = CPHFALSE;
                break;
             }
@@ -1111,14 +1111,14 @@ int cphConfigConfigureLog(CPH_CONFIG *pConfig){
   CPHTRACEENTRY(pConfig->pTrc)
   if(CPHTRUE != cphConfigGetInt(pConfig, &(pConfig->pLog->verbosityToSTDOUT), "vo")){
     INVALIDLOGCONF("Invalid parameter: (vo) Could not determine log verbosity.")
-  } else if(pConfig->pLog->verbosityToSTDOUT<LOGNONE || pConfig->pLog->verbosityToSTDOUT>LOGALL) {
-    INVALIDLOGCONF("Invalid log verbosity: %d (valid values are %d to %d)", pConfig->pLog->verbosityToSTDOUT, LOGNONE, LOGALL)
+  } else if(pConfig->pLog->verbosityToSTDOUT<LOG_NONE || pConfig->pLog->verbosityToSTDOUT>LOG_ALL) {
+    INVALIDLOGCONF("Invalid log verbosity: %d (valid values are %d to %d)", pConfig->pLog->verbosityToSTDOUT, LOG_NONE, LOG_ALL)
   }
 
   if(CPHTRUE != cphConfigGetInt(pConfig, &(pConfig->pLog->verbosityToSTDERR), "ve")){
     INVALIDLOGCONF("Invalid parameter: (ve) Could not determine log error verbosity.")
-  } else if(pConfig->pLog->verbosityToSTDERR<LOGNONE || pConfig->pLog->verbosityToSTDERR>LOGALL) {
-    INVALIDLOGCONF("Invalid log error verbosity: %d (valid values are %d to %d)", pConfig->pLog->verbosityToSTDERR, LOGNONE, LOGALL)
+  } else if(pConfig->pLog->verbosityToSTDERR<LOG_NONE || pConfig->pLog->verbosityToSTDERR>LOG_ALL) {
+    INVALIDLOGCONF("Invalid log error verbosity: %d (valid values are %d to %d)", pConfig->pLog->verbosityToSTDERR, LOG_NONE, LOG_ALL)
   }
 
   return CPHTRUE;

@@ -1,4 +1,4 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2019">*/
 /*******************************************************************************
  * Copyright (c) 2007,2017 IBM Corp.
  *
@@ -35,50 +35,153 @@
   extern "C" {
 #endif
 
+typedef void (MQENTRY *MQCONNPTR) (
+  PMQCHAR   pQMgrName,
+  PMQHCONN  pHconn,
+  PMQLONG   pCompCode,
+  PMQLONG   pReason);
+
+typedef void (MQENTRY *MQCONNXPTR) (
+  PMQCHAR   pQMgrName,
+  PMQCNO    pConnectOpts,
+  PMQHCONN  pHconn,
+  PMQLONG   pCompCode,
+  PMQLONG   pReason);
+
+typedef void (MQENTRY *MQDISCPTR) (
+  PMQHCONN  pHconn,
+  PMQLONG   pCompCode,
+  PMQLONG   pReason);
+
+typedef void (MQENTRY *MQOPENPTR) (
+  MQHCONN  Hconn,
+  PMQVOID  pObjDesc,
+  MQLONG   Options,
+  PMQHOBJ  pHobj,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQCLOSEPTR) (
+  MQHCONN  Hconn,
+  PMQHOBJ  pHobj,
+  MQLONG   Options,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQGETPTR) (
+  MQHCONN  Hconn,
+  MQHOBJ   Hobj,
+  PMQVOID  pMsgDesc,
+  PMQVOID  pGetMsgOpts,
+  MQLONG   BufferLength,
+  PMQVOID  pBuffer,
+  PMQLONG  pDataLength,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQPUTPTR) (
+  MQHCONN  Hconn,
+  MQHOBJ   Hobj,
+  PMQVOID  pMsgDesc,
+  PMQVOID  pPutMsgOpts,
+  MQLONG   BufferLength,
+  PMQVOID  pBuffer,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQSETPTR) (
+  MQHCONN  Hconn,
+  MQHOBJ   Hobj,
+  MQLONG   SelectorCount,
+  PMQLONG  pSelectors,
+  MQLONG   IntAttrCount,
+  PMQLONG  pIntAttrs,
+  MQLONG   CharAttrLength,
+  PMQCHAR  pCharAttrs,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQPUT1PTR) (
+  MQHCONN  Hconn,
+  PMQVOID  pObjDesc,
+  PMQVOID  pMsgDesc,
+  PMQVOID  pPutMsgOpts,
+  MQLONG   BufferLength,
+  PMQVOID  pBuffer,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQBACKPTR) (
+  MQHCONN  Hconn,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQCMITPTR) (
+  MQHCONN  Hconn,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQINQPTR) (
+  MQHCONN  Hconn,
+  MQHOBJ   Hobj,
+  MQLONG   SelectorCount,
+  PMQLONG  pSelectors,
+  MQLONG   IntAttrCount,
+  PMQLONG  pIntAttrs,
+  MQLONG   CharAttrLength,
+
+  PMQCHAR  pCharAttrs,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+#ifndef CPH_WMQV6
+typedef void (MQENTRY *MQSUBPTR) (
+  MQHCONN  Hconn,
+  PMQVOID  pSubDesc,
+  PMQHOBJ  pHobj,
+  PMQHOBJ  pHsub,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQBUFMHPTR) (
+  MQHCONN  Hconn,
+  MQHMSG   Hmsg,
+  PMQVOID  pBufMsgHOpts,
+  PMQVOID  pMsgDesc,
+  MQLONG   BufferLength,
+  PMQVOID  pBuffer,
+  PMQLONG  pDataLength,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQCRTMHPTR) (
+  MQHCONN  Hconn,
+  PMQVOID  pCrtMsgHOpts,
+  PMQHMSG  pHmsg,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+
+typedef void (MQENTRY *MQDLTMHPTR) (
+  MQHCONN  Hconn,
+  PMQHMSG  pHmsg,
+  PMQVOID  pDltMsgHOpts,
+  PMQLONG  pCompCode,
+  PMQLONG  pReason);
+#endif
+
 #if defined(WIN32)
 
 #define ITS_WINDOWS
 
   #include <windows.h>
   #define EPTYPE HMODULE
-  #ifndef MQEA
-    typedef int (MQENTRY *MQFUNCPTR)();
-  #else
+  #ifdef MQEA
     #define FUNCPTR FARPROC
-    typedef int (MQENTRY *MQFUNCPTR)();
   #endif
    /* EstablishMQEpsX will load either the local or remote dll according to its input parameter is Client */
    #define MQLOCAL_NAME  "mqm.dll"
    #define MQREMOTE_NAME "mqic.dll"
    #define MQREMOTE_NAME_IS "mqdc.dll"      /* installation specific client dll */
-
-/*********************************************************************/
-/*   Typedefs                                                        */
-/*********************************************************************/
-
-typedef struct mq_epList
-{
- MQFUNCPTR mqconn;
- MQFUNCPTR mqconnx;
- MQFUNCPTR mqdisc;
- MQFUNCPTR mqopen;
- MQFUNCPTR mqclose;
- MQFUNCPTR mqget;
- MQFUNCPTR mqput;
- MQFUNCPTR mqset;
- MQFUNCPTR mqput1;
- MQFUNCPTR mqback;
- MQFUNCPTR mqcmit;
- MQFUNCPTR mqinq;
-#ifndef CPH_WMQV6
- MQFUNCPTR mqsub;
- MQFUNCPTR mqbufmh;
- MQFUNCPTR mqcrtmh;
- MQFUNCPTR mqdltmh;
-#endif
-} mq_epList;
-
-typedef mq_epList * Pmq_epList;
 
 #elif defined(CPH_UNIX)
 
@@ -109,34 +212,36 @@ typedef mq_epList * Pmq_epList;
 #endif
 
 #define EPTYPE void *
-typedef int (MQENTRY *MQFUNCPTR)();
+
+#endif
+
+/*********************************************************************/
+/*   Typedefs                                                        */
+/*********************************************************************/
 
 typedef struct mq_epList
 {
- MQFUNCPTR mqconn;
- MQFUNCPTR mqconnx;
- MQFUNCPTR mqdisc;
- MQFUNCPTR mqopen;
- MQFUNCPTR mqclose;
- MQFUNCPTR mqget;
- MQFUNCPTR mqput;
- MQFUNCPTR mqset;
- MQFUNCPTR mqput1;
- MQFUNCPTR mqback;
- MQFUNCPTR mqcmit;
- MQFUNCPTR mqinq;
+ MQCONNPTR  mqconn;
+ MQCONNXPTR mqconnx;
+ MQDISCPTR  mqdisc;
+ MQOPENPTR  mqopen;
+ MQCLOSEPTR mqclose;
+ MQGETPTR   mqget;
+ MQPUTPTR   mqput;
+ MQSETPTR   mqset;
+ MQPUT1PTR  mqput1;
+ MQBACKPTR  mqback;
+ MQCMITPTR  mqcmit;
+ MQINQPTR   mqinq;
 #ifndef CPH_WMQV6
- MQFUNCPTR mqsub;
- MQFUNCPTR mqbufmh;
- MQFUNCPTR mqcrtmh;
- MQFUNCPTR mqdltmh;
+ MQSUBPTR   mqsub;
+ MQBUFMHPTR mqbufmh;
+ MQCRTMHPTR mqcrtmh;
+ MQDLTMHPTR mqdltmh;
 #endif
 } mq_epList;
 
 typedef mq_epList * Pmq_epList;
-
-
-#endif
 
 /* Function prototypes */
 int cphMQSplitterCheckMQLoaded(CPH_LOG *pLog, int isClient);

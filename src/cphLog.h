@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,12 @@
 #include "cphTrace.h"
 
 /* Definitions of the various log levels which cph messages can be assigned to */
-#define LOGNONE    0
-#define LOGERROR   1
-#define LOGWARNING 2
-#define LOGINFO    3
-#define LOGVERBOSE 4
-#define LOGALL     4
+#define LOG_NONE    0
+#define LOG_ERROR   1
+#define LOG_WARNING 2
+#define LOG_INFO    3
+#define LOG_VERBOSE 4
+#define LOG_ALL     4
 
 /* The CPH_LOG control structure */
 typedef struct s_cphLog {

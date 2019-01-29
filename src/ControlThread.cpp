@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,7 +178,7 @@ protected:
         sprintf(buff, "rate=%.2f,threads=%u", (double) total / (elapsedTime / 1000), running);
         ss2 << buff;
 
-        cphLogPrintLn(pLog, LOGINFO, ss2.str().data());
+        cphLogPrintLn(pLog, LOG_INFO, ss2.str().data());
 
       }
     } catch (ShutdownException) {
@@ -275,7 +275,7 @@ void ControlThread::run() {
   int temp;
   char tempStr[512];
 
-  cphLogPrintLn(pLog, LOGVERBOSE, "controlThread START");
+  cphLogPrintLn(pLog, LOG_VERBOSE, "controlThread START");
   CPH_TIME threadStartTime = cphUtilGetNow();
 
   try {
@@ -363,7 +363,7 @@ void ControlThread::run() {
   } catch (std::runtime_error &e) {
     /* If the configuration is invalid at this point, print a message and exit before starting any worker threads */
     if (CPHTRUE == cphConfigIsInvalid(pConfig))
-      cphLogPrintLn( pLog, LOGERROR, "The current configuration is not valid. Use -h to see available options." );
+      cphLogPrintLn( pLog, LOG_ERROR, "The current configuration is not valid. Use -h to see available options." );
     throw e;
   }
 
@@ -387,7 +387,7 @@ void ControlThread::run() {
       cphUtilSleep(duration);
       if (cphControlCInvoked != 0) {
     	  sprintf(tempStr, "cphControlCInvoked flag triggered: %d - Signal detected", cphControlCInvoked);
-          cphLogPrintLn(pLog, LOGERROR, tempStr);
+          cphLogPrintLn(pLog, LOG_ERROR, tempStr);
           CPHTRACEMSG(pTrc, tempStr)
     	  throw ShutdownException();
       }
@@ -399,18 +399,18 @@ void ControlThread::run() {
     }
 
     if(runningWorkers>0)
-      cphLogPrintLn(pLog, LOGVERBOSE, "Timer : Runlength expired" );
+      cphLogPrintLn(pLog, LOG_VERBOSE, "Timer : Runlength expired" );
 
   } catch (ShutdownException) {
-    cphLogPrintLn(pLog, LOGERROR, "Caught shutdown exception." );
+    cphLogPrintLn(pLog, LOG_ERROR, "Caught shutdown exception." );
     CPHTRACEMSG(pTrc, "Caught shutdown exception.")
   } catch (std::exception &e) {
     sprintf(tempStr, "[ControlThread] Caught exception: %s", e.what());
-    cphLogPrintLn(pLog, LOGERROR, tempStr);
+    cphLogPrintLn(pLog, LOG_ERROR, tempStr);
     ex = e;
     exceptionCaught = true;
   } catch (...) {
-    cphLogPrintLn(pLog, LOGERROR, "[ControlThread] Caught unknown object.");
+    cphLogPrintLn(pLog, LOG_ERROR, "[ControlThread] Caught unknown object.");
   }
 
   CPH_TIME approxEndTime = cphUtilGetNow();
@@ -461,9 +461,9 @@ void ControlThread::run() {
     sprintf(tempStr,
         "totalIterations=%u,totalSeconds=%.2f,avgRate=%.2f",
         iterations, duration, (double)iterations/duration);
-    cphLogPrintLn(pLog, LOGWARNING, tempStr);
+    cphLogPrintLn(pLog, LOG_WARNING, tempStr);
   }
-  cphLogPrintLn(pLog, LOGVERBOSE, "controlThread STOP");
+  cphLogPrintLn(pLog, LOG_VERBOSE, "controlThread STOP");
 
   if(exceptionCaught)
     throw ex;
@@ -541,7 +541,7 @@ void ControlThread::startWorkers(unsigned int interval, unsigned int timeout) {
         CPHTRACEMSG(pTrc, "   State running is set.")
       } else {
         sprintf(errorString, "Timed out waiting for thread '%s' to start.", pWorker->name.data());
-        cphLogPrintLn(pConfig->pLog, LOGERROR, errorString);
+        cphLogPrintLn(pConfig->pLog, LOG_ERROR, errorString);
         throw std::runtime_error(errorString);
       }
     }
@@ -625,7 +625,7 @@ void ControlThread::shutdownWorkers() {
         if((*it)->isAlive())
           ss << (*it)->name << " ";
       ss << ")";
-      cphLogPrintLn(pConfig->pLog, LOGWARNING, ss.str().data());
+      cphLogPrintLn(pConfig->pLog, LOG_WARNING, ss.str().data());
     }
   }
 

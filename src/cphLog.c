@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ int cphLogIni(CPH_LOG **ppLog, CPH_TRACE *pTrc) {
 
   pLog = malloc(sizeof(CPH_LOG));
   if (pLog != NULL) {
-     pLog->verbosityToSTDOUT = LOGVERBOSE;
-     pLog->verbosityToSTDERR = LOGNONE;
+     pLog->verbosityToSTDOUT = LOG_VERBOSE;
+     pLog->verbosityToSTDERR = LOG_NONE;
      pLog->errorsReported = CPHFALSE;
        pLog->pTrc = pTrc;
   }
@@ -89,7 +89,7 @@ void cphLogPrintLn(CPH_LOG *pLog, int logLevel, char const *string)
 {
     CPHTRACEENTRY(pLog->pTrc)
 
-    if ( logLevel==LOGERROR ) {
+    if ( logLevel==LOG_ERROR ) {
         pLog->errorsReported = CPHTRUE;
     }
     if ( logLevel <= pLog->verbosityToSTDERR ) {

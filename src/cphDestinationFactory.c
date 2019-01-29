@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ void cphDestinationFactoryIni(CPH_DESTINATIONFACTORY **ppDestinationFactory, CPH
   }
 
     if (CPHFALSE == cphSpinLock_Init( &(pDestCreateLock))) {
-        cphLogPrintLn(pConfig->pLog, LOGERROR, "Cannot create destination create lock" );
+        cphLogPrintLn(pConfig->pLog, LOG_ERROR, "Cannot create destination create lock" );
         status = CPHFALSE;
     }
 

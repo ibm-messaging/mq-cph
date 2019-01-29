@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner) :
   if(pOpts->connType==REMOTE)
     snprintf(msg+strlen(msg), CPH_MQC_MSG_LEN-strlen(msg), " (host: %s; port: %u; channel: %s)",
         pOpts->hostName, pOpts->portNumber, pOpts->channelName);
-  cphLogPrintLn(pLog, LOGVERBOSE, msg);
+  cphLogPrintLn(pLog, LOG_VERBOSE, msg);
 
   MQCNO cno = pOpts->getCNO();
   CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)
@@ -69,7 +69,7 @@ MQIConnection::~MQIConnection() {
   CPHTRACEENTRY(pTrc)
   if(ownsConnection){
     snprintf(msg, CPH_MQC_MSG_LEN, "[%s] Disconnecting from QM: %s", name, pOpts->QMName);
-    cphLogPrintLn(pLog, LOGVERBOSE, msg);
+    cphLogPrintLn(pLog, LOG_VERBOSE, msg);
     try {
       CPHCALLMQ(pTrc, MQDISC, &hConn)
     } catch (cph::MQIException) {

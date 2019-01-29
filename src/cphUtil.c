@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
 #include <signal.h>
 #include <assert.h>
 
-#if defined(AMQ_AS400) || defined(AMQ_DARWIN)
+#if defined(AMQ_AS400) || defined(AMQ_MACOS)
 #include <sys/select.h>
 #define SMALLPART tv_usec
 #elif defined(CPH_UNIX)
@@ -128,7 +128,7 @@ CPH_TIME cphUtilGetNow() {
    ret.tv_sec = 0;
    ret.SMALLPART = 0;
 
-#if defined(AMQ_AS400) || defined(AMQ_DARWIN)
+#if defined(AMQ_AS400) || defined(AMQ_MACOS)
   /* On iSeries we get the number of seconds and micro seconds since   */
   /* the epoch using the gettimeofday function, which is now obsolete  */
   /* on other Unix platforms.                                          */
@@ -160,7 +160,7 @@ long cphUtilGetTimeDifference(CPH_TIME time1, CPH_TIME time2) {
       CountsPerMillisecond = (long) (freq.QuadPart/1000);
    }
    return (long) ((time1.QuadPart-time2.QuadPart)/CountsPerMillisecond);
-#elif defined(AMQ_AS400) || defined(AMQ_DARWIN)
+#elif defined(AMQ_AS400) || defined(AMQ_MACOS)
    return (long) ((time1.tv_sec-time2.tv_sec)*1000 + (time1.tv_usec-time2.tv_usec)/1000);
 #elif defined(CPH_UNIX)
    return (long) ((time1.tv_sec-time2.tv_sec)*1000 + (time1.tv_nsec-time2.tv_nsec)/1000000);
@@ -176,7 +176,7 @@ double cphUtilGetDoubleDuration(CPH_TIME start, CPH_TIME end){
       performanceFrequency = freq.QuadPart;
    }
    return (double)(end.QuadPart-start.QuadPart)/performanceFrequency;
-#elif defined(AMQ_AS400) || defined(AMQ_DARWIN)
+#elif defined(AMQ_AS400) || defined(AMQ_MACOS)
    return (double)((end.tv_sec-start.tv_sec)*1000000 + end.tv_usec - start.tv_usec)/1000000;
 #elif defined(CPH_UNIX)
    return (double)((end.tv_sec-start.tv_sec)*1000000000 + end.tv_nsec - start.tv_nsec)/1000000000;
@@ -279,7 +279,7 @@ cph_pthread_t cphUtilGetThreadId() {
 #elif defined(AMQ_AS400)
     _RETTHID_Thread_ID_T mytid = _RETTHID();
     threadId = mytid.Thread_ID_Low;
-#elif defined(AMQ_DARWIN)
+#elif defined(AMQ_MACOS)
     threadId = (uint64_t)pthread_mach_thread_np(pthread_self());
 #elif defined(CPH_UNIX)
     threadId = pthread_self();
@@ -358,7 +358,7 @@ int cphUtilGetTraceTime(char *chTime) {
   /* This is used to store the "broken down" time */
   struct tm  brokenDownTime;
 
-#if defined(AMQ_AS400) || defined(AMQ_DARWIN)
+#if defined(AMQ_AS400) || defined(AMQ_MACOS)
   /* This variable will get the number of seconds and micro seconds since the epoch */
   struct timeval atimeval;
   if (0 == gettimeofday(&atimeval, NULL)) {

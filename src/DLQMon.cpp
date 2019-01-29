@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ void DLQMon::msgOneIteration(){
       MQ_Q_MGR_NAME_LENGTH, MQ_Q_MGR_NAME_LENGTH, dlh->DestQMgrName);
 #endif
 
-  cphLogPrintLn(pConfig->pLog, LOGWARNING, msg);
+  cphLogPrintLn(pConfig->pLog, LOG_WARNING, msg);
 
   CPHTRACEEXIT(pConfig->pTrc)
 }

@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@
 #if defined(WIN32)  || defined(WIN64)
 #include <Windows.h>
 #define CPH_TIME LARGE_INTEGER
-#elif defined(AMQ_AS400) || defined(AMQ_DARWIN)
+#elif defined(AMQ_AS400) || defined(AMQ_MACOS)
 #include <sys/time.h>
 #define CPH_TIME struct timeval
 #else
@@ -60,7 +60,7 @@
   #define cph_pthread_t int
 #elif defined(AMQ_AS400)
   #define cph_pthread_t int
-#elif defined(AMQ_DARWIN)
+#elif defined(AMQ_MACOS)
   #define cph_pthread_t uint64_t
 #elif defined(CPH_UNIX)
   #define cph_pthread_t pthread_t

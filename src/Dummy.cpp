@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ void Dummy::closeSession(){
   ss << "Largest prime: " << primes[getIterations()-1] << "\n";
   ss << "Largest gap between consecutive primes was " << largestGap << ", between " <<
       primes[largestGapIndex-1] << "[" << largestGapIndex << "] and " << primes[largestGapIndex] << "[" << largestGapIndex+1 << "]\n";
-  cphLogPrintLn(pConfig->pLog, LOGINFO, ss.str().data());
+  cphLogPrintLn(pConfig->pLog, LOG_INFO, ss.str().data());
 }
 
 

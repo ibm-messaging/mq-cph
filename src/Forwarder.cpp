@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ MQWTCONSTRUCTOR(Forwarder, true, true), pInQueue(NULL), pOutQueue(NULL) {
   if(threadNum==0){
 
     if(pOpts->timeout!=-1)
-      cphLogPrintLn(pConfig->pLog, LOGWARNING,
+      cphLogPrintLn(pConfig->pLog, LOG_WARNING,
           "\t******************************************************************************\n"
           "\t* WARNING - (to) Setting the MQGET timeout to something other than -1        *\n"
           "\t*           (i.e. wait indefinitely) for Forwarders is probably not what you *\n"
@@ -74,7 +74,7 @@ MQWTCONSTRUCTOR(Forwarder, true, true), pInQueue(NULL), pOutQueue(NULL) {
 
     // Input queue.
     if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, "iq")){
-      cphLogPrintLn(pConfig->pLog, LOGINFO,
+      cphLogPrintLn(pConfig->pLog, LOG_INFO,
           "No input queue prefix parameter (-iq) detected. Falling back on destination prefix (-d).");
       strncpy(iqPrefix, pOpts->destinationPrefix, MQ_Q_NAME_LENGTH);
     }
@@ -82,7 +82,7 @@ MQWTCONSTRUCTOR(Forwarder, true, true), pInQueue(NULL), pOutQueue(NULL) {
 
     // Output queue.
     if(CPHTRUE != cphConfigGetString(pConfig, (char*) &oqPrefix, "oq")){
-      cphLogPrintLn(pConfig->pLog, LOGINFO,
+      cphLogPrintLn(pConfig->pLog, LOG_INFO,
           "No output queue prefix parameter (-oq) detected. Falling back on destination prefix (-d).");
       strncpy(oqPrefix, pOpts->destinationPrefix, MQ_Q_NAME_LENGTH);
     }

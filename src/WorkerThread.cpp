@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,12 +187,12 @@ void WorkerThread::run(){
 
   state |= S_STARTED;
   snprintf(msg, 512, "[%s] START", name.data());
-  cphLogPrintLn(pConfig->pLog, LOGINFO, msg);
+  cphLogPrintLn(pConfig->pLog, LOG_INFO, msg);
 
   try{
     _openSession();
     snprintf(msg, 512, "[%s] First session open - entering RUNNING state.", name.data());
-    cphLogPrintLn(pConfig->pLog, LOGINFO, msg);
+    cphLogPrintLn(pConfig->pLog, LOG_INFO, msg);
     state |= S_RUNNING;
     pControlThread->incRunners();
     startTime = cphUtilGetNow();
@@ -206,13 +206,13 @@ void WorkerThread::run(){
 
       if(sessionInterval>0){
         snprintf(msg, 512, "[%s] Session %lu complete - sleeping for %ums.", name.data(), sessionCount, sessionInterval);
-        cphLogPrintLn(pConfig->pLog, LOGVERBOSE, msg);
+        cphLogPrintLn(pConfig->pLog, LOG_VERBOSE, msg);
         this->sleep(sessionInterval);
       }
 
       if(!shutdown){
         snprintf(msg, 512, "[%s] Starting session %lu.", name.data(), sessionCount+1);
-        cphLogPrintLn(pConfig->pLog, LOGVERBOSE, msg);
+        cphLogPrintLn(pConfig->pLog, LOG_VERBOSE, msg);
         _openSession();
         pace();
       }
@@ -230,7 +230,7 @@ void WorkerThread::run(){
      */
 
     snprintf(msg, 512, "[%s] Caught exception: %s", name.data(), e.what());
-    cphLogPrintLn(pConfig->pLog, LOGERROR, msg);
+    cphLogPrintLn(pConfig->pLog, LOG_ERROR, msg);
     state |= S_ERROR;
     state &= ~(S_OPENING | S_CLOSING);
 
@@ -250,7 +250,7 @@ void WorkerThread::run(){
     endTime = cphUtilGetNow();
   }
   snprintf(msg, 512, "[%s] STOP", name.data());
-  cphLogPrintLn(pConfig->pLog, LOGINFO, msg);
+  cphLogPrintLn(pConfig->pLog, LOG_INFO, msg);
   CPHTRACEEXIT(pConfig->pTrc)
 }
 

@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2019">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -621,7 +621,7 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
 
     /* tell the world what we found */
     sprintf(msg, "DLL %s loaded ok", DLL_name);
-    cphLogPrintLn(pLog, LOGINFO, msg);
+    cphLogPrintLn(pLog, LOG_INFO, msg);
 
    /**********************************************************/
    /* For the present we will assume that having found a dll */
@@ -629,45 +629,24 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
    /* If it hasn't then code in gmqdyn0a.c will raise error  */
    /**********************************************************/
 
-   #if defined(ITS_WINDOWS)
-    ep->mqconn   = (MQFUNCPTR) GetProcAddress(pLibrary,"MQCONN");
-    //ep->mqconn   = (pMQCONN) GetProcAddress(pLibrary,"MQCONN");
-    ep->mqconnx  = (MQFUNCPTR) GetProcAddress(pLibrary,"MQCONNX");
-    ep->mqput    = (MQFUNCPTR) GetProcAddress(pLibrary,"MQPUT");
-    ep->mqget    = (MQFUNCPTR) GetProcAddress(pLibrary,"MQGET");
-    ep->mqopen   = (MQFUNCPTR) GetProcAddress(pLibrary,"MQOPEN");
-    ep->mqclose  = (MQFUNCPTR) GetProcAddress(pLibrary,"MQCLOSE");
-    ep->mqdisc   = (MQFUNCPTR) GetProcAddress(pLibrary,"MQDISC");
-    ep->mqset    = (MQFUNCPTR) GetProcAddress(pLibrary,"MQSET");
-    ep->mqput1   = (MQFUNCPTR) GetProcAddress(pLibrary,"MQPUT1");
-    ep->mqback   = (MQFUNCPTR) GetProcAddress(pLibrary,"MQBACK");
-    ep->mqcmit   = (MQFUNCPTR) GetProcAddress(pLibrary,"MQCMIT");
-    ep->mqinq    = (MQFUNCPTR) GetProcAddress(pLibrary,"MQINQ");
+    ep->mqconn   = (MQCONNPTR)  GetProcAddress(pLibrary,"MQCONN");
+    ep->mqconnx  = (MQCONNXPTR) GetProcAddress(pLibrary,"MQCONNX");
+    ep->mqput    = (MQPUTPTR)   GetProcAddress(pLibrary,"MQPUT");
+    ep->mqget    = (MQGETPTR)   GetProcAddress(pLibrary,"MQGET");
+    ep->mqopen   = (MQOPENPTR)  GetProcAddress(pLibrary,"MQOPEN");
+    ep->mqclose  = (MQCLOSEPTR) GetProcAddress(pLibrary,"MQCLOSE");
+    ep->mqdisc   = (MQDISCPTR)  GetProcAddress(pLibrary,"MQDISC");
+    ep->mqset    = (MQSETPTR)   GetProcAddress(pLibrary,"MQSET");
+    ep->mqput1   = (MQPUT1PTR)  GetProcAddress(pLibrary,"MQPUT1");
+    ep->mqback   = (MQBACKPTR)  GetProcAddress(pLibrary,"MQBACK");
+    ep->mqcmit   = (MQCMITPTR)  GetProcAddress(pLibrary,"MQCMIT");
+    ep->mqinq    = (MQINQPTR)   GetProcAddress(pLibrary,"MQINQ");
 #ifndef CPH_WMQV6
-    ep->mqsub    = (MQFUNCPTR) GetProcAddress(pLibrary,"MQSUB");
-    ep->mqbufmh  = (MQFUNCPTR) GetProcAddress(pLibrary,"MQBUFMH");
-    ep->mqcrtmh  = (MQFUNCPTR) GetProcAddress(pLibrary,"MQCRTMH");
-    ep->mqdltmh  = (MQFUNCPTR) GetProcAddress(pLibrary,"MQDLTMH");
+    ep->mqsub    = (MQSUBPTR)   GetProcAddress(pLibrary,"MQSUB");
+    ep->mqbufmh  = (MQBUFMHPTR) GetProcAddress(pLibrary,"MQBUFMH");
+    ep->mqcrtmh  = (MQCRTMHPTR) GetProcAddress(pLibrary,"MQCRTMH");
+    ep->mqdltmh  = (MQDLTMHPTR) GetProcAddress(pLibrary,"MQDLTMH");
 #endif
-  #else //it's AMQ_OS2
-    error = DosQueryProcAddr(pLibrary,0L,"MQCONN",&(ep->mqconn));
-    error = DosQueryProcAddr(pLibrary,0L,"MQPUT",&(ep->mqput));
-    error = DosQueryProcAddr(pLibrary,0L,"MQGET",&(ep->mqget));
-    error = DosQueryProcAddr(pLibrary,0L,"MQOPEN",&(ep->mqopen));
-    error = DosQueryProcAddr(pLibrary,0L,"MQCLOSE",&(ep->mqclose));
-    error = DosQueryProcAddr(pLibrary,0L,"MQDISC",&(ep->mqdisc));
-    error = DosQueryProcAddr(pLibrary,0L,"MQSET",&(ep->mqset));
-    error = DosQueryProcAddr(pLibrary,0L,"MQPUT1",&(ep->mqput1));
-    error = DosQueryProcAddr(pLibrary,0L,"MQBACK",&(ep->mqback));
-    error = DosQueryProcAddr(pLibrary,0L,"MQCMIT",&(ep->mqcmit));
-    error = DosQueryProcAddr(pLibrary,0L,"MQINQ",&(ep->mqinq));
-#ifndef CPH_WMQV6
-    error = DosQueryProcAddr(pLibrary,0L,"MQSUB",&(ep->mqsub));
-    error = DosQueryProcAddr(pLibrary,0L,"MQBUFMH",&(ep->mqbufmh));
-    error = DosQueryProcAddr(pLibrary,0L,"MQCRTMH",&ep->mqcrtmh));
-    error = DosQueryProcAddr(pLibrary,0L,"MQDLTMH",&ep->mqdltmh));
-#endif
-   #endif
 
    rc = TRUE;     /* TRUE means it worked - dll was found */
   }
@@ -682,7 +661,7 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
     #endif
 
     sprintf(msg, "Cannot find lib - %s (error = %u)", DLL_name, error);
-    cphLogPrintLn(pLog, LOGERROR, msg);
+    cphLogPrintLn(pLog, LOG_ERROR, msg);
 
     rc = FALSE;
   }
@@ -723,7 +702,7 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
     char buff[200];
     /* lets try and tell the world what happened */
     sprintf(buff, "Failed trying to load %s", DLL_name);
-    cphLogPrintLn(pLog, LOGERROR, buff);
+    cphLogPrintLn(pLog, LOG_ERROR, buff);
   }
   else
   {
@@ -803,8 +782,8 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
   {
      /* lets try and tell the world what happened */
       sprintf(buff, "On trying to load %s %s", DLL_name, " ........");
-      cphLogPrintLn(pLog, LOGERROR, buff);
-      cphLogPrintLn(pLog, LOGERROR, ErrorText);
+      cphLogPrintLn(pLog, LOG_ERROR, buff);
+      cphLogPrintLn(pLog, LOG_ERROR, ErrorText);
   }
 
   if (pLibrary)   /* did we find a DLL? */
@@ -813,7 +792,7 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
    {  /* tell the world what we found */
 
     sprintf(buff, "Shared library %s loaded ok", DLL_name);
-    cphLogPrintLn(pLog, LOGINFO, buff);
+    cphLogPrintLn(pLog, LOG_INFO, buff);
    }
 
    /**********************************************************/
@@ -821,23 +800,23 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
    /* it will have the things we need !!!!                   */
    /**********************************************************/
 
-       ep->mqconn   = (MQFUNCPTR)  dlsym(pLibrary, "MQCONN");
-       ep->mqconnx  = (MQFUNCPTR)  dlsym(pLibrary, "MQCONNX");
-       ep->mqdisc   = (MQFUNCPTR)  dlsym(pLibrary, "MQDISC");
-       ep->mqopen   = (MQFUNCPTR)  dlsym(pLibrary, "MQOPEN");
-       ep->mqclose  = (MQFUNCPTR)  dlsym(pLibrary, "MQCLOSE");
-       ep->mqget    = (MQFUNCPTR)  dlsym(pLibrary, "MQGET");
-       ep->mqput    = (MQFUNCPTR)  dlsym(pLibrary, "MQPUT");
-       ep->mqset    = (MQFUNCPTR)  dlsym(pLibrary, "MQSET");
-       ep->mqput1   = (MQFUNCPTR)  dlsym(pLibrary, "MQPUT1");
-       ep->mqback   = (MQFUNCPTR)  dlsym(pLibrary, "MQBACK");
-       ep->mqcmit   = (MQFUNCPTR)  dlsym(pLibrary, "MQCMIT");
-       ep->mqinq    = (MQFUNCPTR)  dlsym(pLibrary, "MQINQ");
+       ep->mqconn   = (MQCONNPTR)   dlsym(pLibrary, "MQCONN");
+       ep->mqconnx  = (MQCONNXPTR)  dlsym(pLibrary, "MQCONNX");
+       ep->mqdisc   = (MQDISCPTR)   dlsym(pLibrary, "MQDISC");
+       ep->mqopen   = (MQOPENPTR)   dlsym(pLibrary, "MQOPEN");
+       ep->mqclose  = (MQCLOSEPTR)  dlsym(pLibrary, "MQCLOSE");
+       ep->mqget    = (MQGETPTR)    dlsym(pLibrary, "MQGET");
+       ep->mqput    = (MQPUTPTR)    dlsym(pLibrary, "MQPUT");
+       ep->mqset    = (MQSETPTR)    dlsym(pLibrary, "MQSET");
+       ep->mqput1   = (MQPUT1PTR)   dlsym(pLibrary, "MQPUT1");
+       ep->mqback   = (MQBACKPTR)   dlsym(pLibrary, "MQBACK");
+       ep->mqcmit   = (MQCMITPTR)   dlsym(pLibrary, "MQCMIT");
+       ep->mqinq    = (MQINQPTR)    dlsym(pLibrary, "MQINQ");
 #ifndef CPH_WMQV6
-       ep->mqsub    = (MQFUNCPTR)  dlsym(pLibrary,"MQSUB");
-       ep->mqbufmh  = (MQFUNCPTR)  dlsym(pLibrary,"MQBUFMH");
-       ep->mqcrtmh  = (MQFUNCPTR)  dlsym(pLibrary,"MQCRTMH");
-       ep->mqdltmh  = (MQFUNCPTR ) dlsym(pLibrary,"MQDLTMH");
+       ep->mqsub    = (MQSUBPTR)    dlsym(pLibrary,"MQSUB");
+       ep->mqbufmh  = (MQBUFMHPTR)  dlsym(pLibrary,"MQBUFMH");
+       ep->mqcrtmh  = (MQCRTMHPTR)  dlsym(pLibrary,"MQCRTMH");
+       ep->mqdltmh  = (MQDLTMHPTR)  dlsym(pLibrary,"MQDLTMH");
 #endif
        rc = 1; /* to show it worked */
   }
@@ -845,7 +824,7 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
   {
     /* couldn't find a dll !!! */
     sprintf(buff, "Cannot find lib - %s!", DLL_name);
-    cphLogPrintLn(pLog, LOGERROR, buff);
+    cphLogPrintLn(pLog, LOG_ERROR, buff);
   }
 
   return rc;

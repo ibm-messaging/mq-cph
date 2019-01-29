@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2018">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -264,7 +264,7 @@ void MQIObject::open(bool log) {
         snprintf(pConn->msg+strlen(pConn->msg), CPH_MQC_MSG_LEN-strlen(pConn->msg),
             " (QM: %.*s)",
             MQ_Q_MGR_NAME_LENGTH, getQMName());
-      cphLogPrintLn(pConn->pLog, LOGVERBOSE, pConn->msg);
+      cphLogPrintLn(pConn->pLog, LOG_VERBOSE, pConn->msg);
     }
 
     CPHCALLMQ(pConn->pTrc, MQOPEN, pConn->hConn, &od, opts, &hObj)
@@ -557,7 +557,7 @@ void MQISubscription::open(bool log) {
   CPHTRACEENTRY(pConn->pTrc)
   if(log){
     snprintf(pConn->msg, CPH_MQC_MSG_LEN, "[%s] Subscribng to topic string: %s", pConn->name, getTopicString());
-    cphLogPrintLn(pConn->pLog, LOGVERBOSE, pConn->msg);
+    cphLogPrintLn(pConn->pLog, LOG_VERBOSE, pConn->msg);
   }
   CPHCALLMQ(pConn->pTrc, MQSUB, pConn->hConn, &sd, &hObj, &hSub)
   CPHTRACEEXIT(pConn->pTrc)

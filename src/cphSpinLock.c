@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2019">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2019 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,15 @@
 #define _WIN32_WINNT 0x0500
 
 #include <windows.h>
+
+/*********************************************************************/
+/* Ignore "C28251: Inconsistent annotation" warnings for Microsoft   */
+/* functions.                                                        */
+/*********************************************************************/
+#pragma warning( push )
+#pragma warning( disable : 28251 )
 #include <intrin.h>
+#pragma warning( pop )
 
 /* This is to specify which intrinsic functions we want to use */
 #pragma intrinsic (_interlockedbittestandreset, _bittestandset)

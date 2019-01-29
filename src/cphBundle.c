@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2018">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2018 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
             while (aLine[strlen(aLine) - 1] == '\\') {
                 if (NULL == fgets(aLine + strlen(aLine) - 1, 255, fp)) {
           sprintf(errorString, "OOPS! Expected line continuation but found EOF (or IO error) in %s\n", propFileName);
-                    cphLogPrintLn(pConfig->pLog, LOGERROR, errorString);
+                    cphLogPrintLn(pConfig->pLog, LOG_ERROR, errorString);
                     break;
                 }
 
@@ -148,7 +148,7 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
 
             /* Store the name value pair into the given CPH_NAMEVAL structure */
             if (CPHTRUE != cphNameValAdd(&(pBundle->pNameValList), name, value)) {
-                cphLogPrintLn( pConfig->pLog, LOGERROR, "ERROR storing name/value pair." );
+                cphLogPrintLn( pConfig->pLog, LOG_ERROR, "ERROR storing name/value pair." );
                 loadedOK = CPHFALSE;
                 break;
             }
@@ -159,7 +159,7 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
     }
     else {
         sprintf(errorString, "ERROR couldn't open properties file: %s.", propFileName);
-        cphLogPrintLn( pConfig->pLog, LOGERROR, errorString );
+        cphLogPrintLn( pConfig->pLog, LOG_ERROR, errorString );
         loadedOK = CPHFALSE;
     }
 	
