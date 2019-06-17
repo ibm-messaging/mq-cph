@@ -48,6 +48,9 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
   int tempInt;
   bool txSet=false;
 
+  //Initialising here, so that we get a predictable default and AIX/iSeries dont like initialisers in header files
+  commitPGPut = false;
+
   /*
    * ------------------
    * Connection Options
@@ -252,8 +255,6 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 	 cphConfigGetString(pConfig, module, "tc");
 	 if(strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0){
     
-        commitPGPut = false;
-	 
 	    if(CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txp")){
 		    CPHTRACEMSG(pConfig->pTrc, "txp flag set: %s", tempInt ? "yes" : "no")
 		    if(tempInt == CPHTRUE){

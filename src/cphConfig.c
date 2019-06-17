@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2018">*/
+/*<copyright notice="lm-source" pids="" years="2007,2019">*/
 /*******************************************************************************
- * Copyright (c) 2007,2018 IBM Corp.
+ * Copyright (c) 2007,2019 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -483,7 +483,7 @@ void cphConfigMarkLoaded(CPH_CONFIG *pConfig) {
     CPHTRACEENTRY(pConfig->pTrc)
 
     /*    configState = LOADED; */
-	
+
     if ( CPHTRUE == cphConfigIsEmpty(pConfig) ) {
         cphConfigInvalidParameter(pConfig, "No arguments specified!" );
     } else {
@@ -571,7 +571,7 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
 				}
 				if(module_bundle != NULL){
                     cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribeModule(pConfig, module_bundle, CPHTRUE) );
-				} 
+				}
         break;
     } /* end switch */
 
@@ -778,7 +778,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
     char sKeyName[80];
     char sKeyVal[2048];
     char *module;
-    char keyBase[8];
+    char keyBase[80];
     CPH_NAMEVAL *pNameVal;
     int hidden;
 
@@ -810,7 +810,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
         do  {
 
              if (cphUtilStringEndsWith(pNameVal->name, ".dflt")) {
-               strncpy(keyBase, pNameVal->name, strlen(pNameVal->name) - 5);
+               strcpy(keyBase, pNameVal->name);
                keyBase[ strlen(pNameVal->name) - 5 ] = '\0';
 
                hidden = CPHFALSE;
@@ -928,9 +928,9 @@ int cphConfigRegisterWorkerThreadModule(CPH_CONFIG *pConfig) {
 
     int status = CPHTRUE;
 	char module[80] = {'\0'};
-	
+
     CPHTRACEENTRY(pConfig->pTrc)
-		
+
     if (CPHTRUE != cphConfigGetString(pConfig, module, "tc")) return(CPHFALSE);
 
     if ( (CPHTRUE != cphConfigRegisterModule(pConfig, module))
@@ -991,7 +991,7 @@ int cphConfigRegisterModule(CPH_CONFIG *pConfig, char *moduleName) {
 int cphConfigImportResources(CPH_CONFIG *pConfig, void *ptr) {
     CPH_BUNDLE *pBundle;
     CPH_NAMEVAL *bundleNameVal;
-    char keyBase[8];
+    char keyBase[80];
     char res[512];
     char errorString[512];
     int status = CPHTRUE;
@@ -1006,7 +1006,7 @@ int cphConfigImportResources(CPH_CONFIG *pConfig, void *ptr) {
 
         if (cphUtilStringEndsWith(bundleNameVal->name, ".dflt")) {
 
-            strncpy(keyBase, bundleNameVal->name, strlen(bundleNameVal->name) - 5);
+            strcpy(keyBase, bundleNameVal->name);
             keyBase[ strlen(bundleNameVal->name) - 5 ] = '\0';
 
             /* Has this property already been registered? */
@@ -1025,7 +1025,7 @@ int cphConfigImportResources(CPH_CONFIG *pConfig, void *ptr) {
             }
 
         } else if(cphUtilStringEndsWith(bundleNameVal->name, ".type")) {
-          strncpy(keyBase, bundleNameVal->name, strlen(bundleNameVal->name) - 5);
+          strcpy(keyBase, bundleNameVal->name);
           keyBase[strlen(bundleNameVal->name) - 5] = '\0';
 
           if(CPHTRUE != cphNameValGet(pConfig->validOptions, keyBase, res))
@@ -1082,7 +1082,7 @@ int cphConfigFreeBundles(CPH_CONFIG *pConfig) {
         do {
             CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);
             if(NULL != pItem){
-				CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;						
+				CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;
                 cphBundleFree(&pBundle);
 		    }
         } while (cphListIteratorHasNext(pIterator));

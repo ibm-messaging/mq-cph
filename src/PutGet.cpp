@@ -58,11 +58,12 @@ MQWTCONSTRUCTOR(PutGet, true, true) {
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &temp, "cs"))
       configError(pConfig, "(cs) Cannot determine whether to use message selectors.");
     useSelector = temp == CPHTRUE;
-    CPHTRACEMSG(pConfig->pTrc, "Use message selectors: %s", useSelector ? "yes" : "no")
+	CPHTRACEMSG(pConfig->pTrc, "Use message selectors: %s", useSelector ? "yes" : "no")
 
-    //Use generic selector? (not selecting on correlId)
+	//Use generic selector? (not selecting on correlId)
+	temp = 0;
     if (useSelector){
-      int temp = cphConfigGetString(pConfig, (char *)&customSelector, "gs") == CPHTRUE;
+      temp = cphConfigGetString(pConfig, (char *)&customSelector, "gs") == CPHTRUE;
       useCustomSelector = (temp && (0 != strcmp(customSelector, "")) ? true : false);
       if (!useCustomSelector)
         configError(pConfig, "(gs) Cannot determine whether to use generic selector.");

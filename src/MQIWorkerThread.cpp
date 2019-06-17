@@ -190,20 +190,27 @@ static inline uint32_t getCorrelIdBase(CPH_TRACE * pTrc){
 void MQIWorkerThread::generateCorrelID(MQBYTE24 & id, char const * const procId){
   CPHTRACEENTRY(pConfig->pTrc)
 
-  memset(id,0,sizeof(MQBYTE24));
-
+  memset(id, 0, sizeof(MQBYTE24));
+  char localproc[80];
+  char procPart[24];
   size_t procIdLen = strlen(procId);
-  if(procIdLen==0){
+
+  strcpy(localproc, procId);
+  if (procIdLen == 0){
     static uint32_t correlIdBase = getCorrelIdBase(pConfig->pTrc);
-    snprintf((char*)id, 24, "%x-%s", correlIdBase, name.data());
-  } else {
-    char const * const threadPart = (name.length()>18 ? name.substr(name.length()-18) : name).data();
-    size_t remaining = 23-strlen(threadPart);
-    char const * const procPart =
-        procIdLen>remaining
-        ? std::string(procId).substr(procIdLen-remaining).data()
-        : procId;
-    sprintf((char*)id, "%s-%s", procPart, threadPart);
+	char const * const threadPart = ((name.length() > 14) ? name.substr(name.length() - 15, 14).data() : name.data());
+    snprintf((char*)id, 24, "%x-%s", correlIdBase, threadPart);
+  }
+  else {
+	char const * const threadPart = ((name.length() > 18) ? name.substr(name.length() - 19, 18).data() : name.data());
+	size_t remaining = 22 - strlen(threadPart);
+	if (procIdLen > remaining) {
+	  strncpy(procPart, &localproc[procIdLen - remaining], remaining);
+	  procPart[remaining] = '\0';
+	  sprintf((char*)id, "%s-%s", procPart, threadPart);
+	} else {
+      sprintf((char*)id, "%s-%s", procId, threadPart);
+	}
   }
   CPHTRACEMSG(pConfig->pTrc, "CorrelID: %s", (char*)id)
   CPHTRACEEXIT(pConfig->pTrc)

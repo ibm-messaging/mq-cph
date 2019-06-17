@@ -38,6 +38,10 @@
   #include <qwtsetp.h>
 #endif
 
+#ifdef SMALL_STACK
+  #include <sys/resource.h>
+#endif
+
 /*
 ** Method: main
 **
@@ -79,6 +83,32 @@ int main(int argc, char * argv[]) {
       printf("QWTSETP failed %.7s\n", ec.Exception_Id);
       return(-1);
     }
+  }
+#endif
+
+#ifdef SMALL_STACK
+  const rlim_t small_stack = 512 * 1024;			//512KB
+  struct rlimit rl;
+  int result;
+
+  result = getrlimit(RLIMIT_STACK, &rl);
+  printf("getrlimit retval: %d\n", result);
+  if (result == 0) {
+	    printf("getrlimit cur stack: %d\n", rl.rlim_cur);
+	    printf("getrlimit max stack: %d\n", rl.rlim_max);
+	if (rl.rlim_cur > small_stack) {				//If current stack size is higher, reduce to small_stack
+	  rl.rlim_cur = small_stack;
+	  rl.rlim_max = small_stack;
+      printf("setting stack size: %d\n", small_stack);
+      result = setrlimit(RLIMIT_STACK, &rl);
+      if (result != 0) {
+          printf("setrlimit failed: %d\n", result);
+      }
+      result = getrlimit(RLIMIT_STACK, &rl);
+      printf("getrlimit retval: %d\n", result);
+      printf("getrlimit cur stack: %d\n", rl.rlim_cur);
+	  printf("getrlimit max stack: %d\n", rl.rlim_max);
+	}
   }
 #endif
 

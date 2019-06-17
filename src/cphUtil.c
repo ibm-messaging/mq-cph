@@ -343,7 +343,7 @@ int cphUtilGetTraceTime(char *chTime) {
 
   GetSystemTime (&stime);
 
-  sprintf(chTime, "%02d_%02d_%04d %02d:%02d:%02d.%03d",
+  sprintf(chTime, "%02u_%02u_%04u %02u:%02u:%02u.%03u",
       stime.wDay,
       stime.wMonth,
       stime.wYear,
