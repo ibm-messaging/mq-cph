@@ -50,6 +50,10 @@ See ([MQ-CPH_Introduction.pdf](samples/MQ-CPH_Introduction.pdf)) in the samples 
 
 Please see ([cph.pdf](cph.pdf))
 
+# Docker
+
+There is a git repo that can help develop a dockerized version of cph called [cphtestp](https://github.com/ibm-messaging/cphtestp)
+
 # Issues and contributions
 
 For issues relating specifically to CPH, please use the [GitHub issue tracker](https://github.com/ibm-messaging/mq-cph/issues). For more general issues relating to IBM MQ, please use the [messaging community](https://developer.ibm.com/answers/?community=messaging). If you do submit a Pull Request related to this source code, please indicate in the Pull Request that you accept and agree to be bound by the terms of the [IBM Contributor License Agreement](CLA.md).
