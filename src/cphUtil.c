@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2018">*/
+/*<copyright notice="lm-source" pids="" years="2007,2020">*/
 /*******************************************************************************
- * Copyright (c) 2007,2018 IBM Corp.
+ * Copyright (c) 2007,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -328,7 +328,7 @@ void cphUtilSigInt(int dummysignum) {
 ** Method: cphUtilGetTraceTime
 **
 ** Return a character string representation of the time in the following format:
-   dd_mm_yyyy hh:hh:ss:mmm
+   dd_mm_yyyy hh:mm:ss:mmm
 **
 ** This method is used by the trace mechanism.
 **
@@ -550,7 +550,7 @@ char *cphUtilstrcrlfTotabcrlf(char *aString) {
 ** Returns: a pointer to the built character string
 **
 */
-char *cphUtilMakeBigString(int size) {
+char *cphUtilMakeBigString(int size, int randomise) {
 
     char *str = NULL;
 
@@ -560,9 +560,17 @@ char *cphUtilMakeBigString(int size) {
     if (NULL != (str = (char*) malloc(size))) {
         int i;
         char c = 65;
-        for (i=0; i < size; i++) {
-           str[i] = c++;
-           if (c > 122) c = 65;
+        if(!randomise){
+          for (i=0; i < size; i++) {
+            str[i] = c++;
+            if (c > 122) c = 65;
+          }
+        } else {
+          srand(time(0)); 
+          for (i=0; i < size; i++) {
+            c = rand() % 58 + 65;   /*random number in range 65-122*/
+            str[i] = c;
+          }
         }
 
     /* Null terminate the string for trace etc */

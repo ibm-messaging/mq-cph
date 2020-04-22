@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ namespace cph {
 
 bool Publisher::topicPerMsg;
 
-MQWTCONSTRUCTOR(Publisher, true, false), pDestFactory(pControlThread->pDestinationFactory) {
+MQWTCONSTRUCTOR(Publisher, true, false, false), pDestFactory(pControlThread->pDestinationFactory) {
   CPHTRACEENTRY(pConfig->pTrc)
   if(threadNum==0){
 
@@ -89,7 +89,7 @@ void Publisher::msgOneIteration(){
 bool Subscriber::durable = false;
 bool Subscriber::unsubscribe = true;
 
-MQWTCONSTRUCTOR(Subscriber, false, true) {
+MQWTCONSTRUCTOR(Subscriber, false, true, false) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   // Populate static fields

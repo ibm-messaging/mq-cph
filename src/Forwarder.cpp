@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2018">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2018 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ char Forwarder::oqPrefix[MQ_Q_NAME_LENGTH];
 /*Whether or not to commit transactions between getting a message and putting one.*/
 bool Forwarder::commitBetween = false;
 
-MQWTCONSTRUCTOR(Forwarder, true, true), pInQueue(NULL), pOutQueue(NULL) {
+MQWTCONSTRUCTOR(Forwarder, true, true, false), pInQueue(NULL), pOutQueue(NULL) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){

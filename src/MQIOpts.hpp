@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ private:
   MQPMO pmo;
   MQCNO cno;
   MQCD cd;
+  MQCNO cno2;
+  MQCD cd2;
   MQCSP csp;
 
   MQMD putMD;
@@ -78,6 +80,9 @@ public:
   char cipherSpec[MQ_SSL_CIPHER_SPEC_LENGTH]; //Name of cipherSpec
   MQCHAR username[MQ_USER_ID_LENGTH + 1];
   MQCHAR password[MQ_CSP_PASSWORD_LENGTH + 1];
+  bool autoReconnect;
+  bool useChannelTable;
+  char ccdtURL[512];
 
   //Put options
   bool isPersistent;
@@ -91,17 +96,20 @@ public:
   //Put & Get options
   char destinationPrefix[MQ_Q_NAME_LENGTH];
   MQLONG messageSize;
+  bool isRandom;
   unsigned int commitFrequency; //How frequently to commit transactions. 0 means non-transactional
   bool commitPGPut;
   bool useRFH2;
   bool useMessageHandle;
+  bool txSet;
 
-  MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter);
+  MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector);
   MQPMO getPMO() const;
   MQGMO getGMO() const;
   MQCNO getCNO() const;
   MQMD getPutMD() const;
   MQMD getGetMD() const;
+  void resetConnectionDef(char *hostname, int port);
 };
 
 }

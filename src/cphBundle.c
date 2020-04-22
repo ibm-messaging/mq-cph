@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2018">*/
+/*<copyright notice="lm-source" pids="" years="2007,2020">*/
 /*******************************************************************************
- * Copyright (c) 2007,2018 IBM Corp.
+ * Copyright (c) 2007,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
         /* Initiliase a new CPH_BUNDLE structure into which we read all the lines in the property file
         as name/value pairs */
         cphBundleIni(&pBundle, pConfig, moduleName);
-		
+
         while ( NULL != fgets(aLine, 1023, fp)) {
             char name[80];
             char *token;
@@ -162,7 +162,7 @@ void *cphBundleLoad(CPH_CONFIG *pConfig, char *moduleName) {
         cphLogPrintLn( pConfig->pLog, LOG_ERROR, errorString );
         loadedOK = CPHFALSE;
     }
-	
+
     CPHTRACEEXIT(pConfig->pTrc)
 
     if (CPHTRUE == loadedOK) return(pBundle);
@@ -236,9 +236,9 @@ int  cphBundleFree(CPH_BUNDLE **ppBundle) {
 **
 ** This function sets a pointer to a CPH_BUNDLE representing a registered module (if it exists)
 **
-** Input Paramters:         module - The name of the module for which a CPH_BUNDLE is being searched for. 
+** Input Paramters:         module - The name of the module for which a CPH_BUNDLE is being searched for.
 **
-** Input/Output Parameters: ppBundle - double pointer to the CPH_BUNDLE. A pointer to a registered  
+** Input/Output Parameters: ppBundle - double pointer to the CPH_BUNDLE. A pointer to a registered
 **                          module's bundle is stored here, if it is found
 **
 ** Returns: CPHTRUE on successful exection (CPH_BUNDLE for module found), CPHFALSE otherwise
@@ -246,7 +246,6 @@ int  cphBundleFree(CPH_BUNDLE **ppBundle) {
 */
 int cphBundleGetBundle(CPH_BUNDLE **pBundle, CPH_CONFIG *pConfig, char *module) {
     CPH_LISTITERATOR *pIterator;
-    int moduleFound = CPHFALSE;
     pIterator = cphArrayListListIterator(pConfig->bundles);
     do {
        CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);

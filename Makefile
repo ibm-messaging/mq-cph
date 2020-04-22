@@ -1,6 +1,6 @@
-#<copyright notice="lm-source" pids="" years="2007,2017">
+#<copyright notice="lm-source" pids="" years="2007,2019">
 #***************************************************************************
-# Copyright (c) 2007,2017 IBM Corp.
+# Copyright (c) 2007,2019 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,10 +66,6 @@ endif
 
 ifeq ($(OSTYPE),AIX)
 include aix.mk
-endif
-
-ifeq ($(OSTYPE),HP-UX)
-include hpux.mk
 endif
 
 ifeq ($(OSTYPE),SunOS)
@@ -150,7 +146,7 @@ else
 # There's a Tab at the beginning of the line 2 lines below:
 #     This is important - DO NOT DELETE
 %/install: %/$(CPH)
-	
+
 endif
 
 # Rule to link executable from object files

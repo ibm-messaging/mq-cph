@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,13 +77,14 @@ private:
   mutable char msg[CPH_MQC_MSG_LEN];
 
 public:
-  MQIConnection(MQIWorkerThread * const pOwner);
+  MQIConnection(MQIWorkerThread * const pOwner, bool reconnect);
 
   MQHMSG createPutMessageHandle(MQMD* md, char* propsBuffer, MQLONG bufferLength) const;
   MQHMSG createGetMessageHandle() const;
   void destroyMessageHandle(MQHMSG& handle) const;
 
   void commitTransaction() const;
+  MQLONG commitTransaction_try() const;
   void rollbackTransaction() const;
 
   virtual ~MQIConnection();
@@ -127,6 +128,7 @@ public:
   MQLONG const compCode;
   /*The reason code (MQRC) of the error.*/
   MQLONG const reasonCode;
+  static bool printDetails;
 
   MQIException(std::string functionName, MQLONG compCode, MQLONG reasonCode, MQBYTE24 id = NULL, const MQCHAR48 qName = NULL);
 
@@ -171,9 +173,11 @@ public:
   void setQMName(char const * const format, ...);
   void setQMName(MQCHAR48 const * qmName);
 
-  void put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);
+  void put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);  
+  MQLONG put_try(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);
   void put1(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);
-  void get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const;
+  void get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const;  
+  MQLONG get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const;
 
   void createSelector(CPH_TRACE * pTrc, MQBYTE24 correlId, char * customSelector);
 

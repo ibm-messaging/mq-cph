@@ -32,27 +32,36 @@
 #else
 #include <cstdio>
 #endif
-#include "Requester.hpp"
+#include "RequesterReconnectTimer.hpp"
 #include "cphLog.h"
+#include <limits.h>
 
 namespace cph {
 
-bool Requester::useCorrelId = true;
-bool Requester::useSelector = false;
-bool Requester::useCustomSelector = false;
-char Requester::customSelector[MQ_SELECTOR_LENGTH];
+bool RequesterReconnectTimer::useCorrelId = true;
+bool RequesterReconnectTimer::useSelector = false;
+bool RequesterReconnectTimer::usingPrimaryQM = true;
+bool RequesterReconnectTimer::useCustomSelector = false;
+char RequesterReconnectTimer::customSelector[MQ_SELECTOR_LENGTH];
+long RequesterReconnectTimer::maxReconnectTime_ms;
+long RequesterReconnectTimer::minReconnectTime_ms;
+int RequesterReconnectTimer::numThreadsReconnected;
+int RequesterReconnectTimer::totalThreads;
+char RequesterReconnectTimer::secondaryHostName[80];              //Name of machine hosting queue manager
+unsigned int RequesterReconnectTimer::secondaryPortNumber;
+Lock RequesterReconnectTimer::rtGate;
 
-int Requester::dqChannels = 1;
-char Requester::iqPrefix[MQ_Q_NAME_LENGTH];
-char Requester::oqPrefix[MQ_Q_NAME_LENGTH];
+int RequesterReconnectTimer::dqChannels = 1;
+char RequesterReconnectTimer::iqPrefix[MQ_Q_NAME_LENGTH];
+char RequesterReconnectTimer::oqPrefix[MQ_Q_NAME_LENGTH];
 
-MQWTCONSTRUCTOR(Requester, true, true, false) {
+MQWTCONSTRUCTOR(RequesterReconnectTimer, true, true, true) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){
 
     if(pOpts->commitFrequency>1)
-      configError(pConfig, "(cc) A commit-count greater than one wont work for Requester. Duh!");
+      configError(pConfig, "(cc) A commit-count greater than one wont work for RequesterReconnectTimer. Duh!");
 
     int temp = 0;
 
@@ -76,6 +85,26 @@ MQWTCONSTRUCTOR(Requester, true, true, false) {
       CPHTRACEMSG(pConfig->pTrc, "Use generic selector: %s", useCustomSelector ? "yes" : "no")
     }
 
+    //Secondary Host name
+	  if (CPHTRUE != cphConfigGetString(pConfig, secondaryHostName, "h2"))
+	    configError(pConfig, "(h2) Default secondary host name cannot be retrieved.");
+	  CPHTRACEMSG(pConfig->pTrc, "Default secondary host name: %s", secondaryHostName)
+		
+	  //Secondary Port number
+	  if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &secondaryPortNumber, "p2"))
+	    configError(pConfig, "(p2) Default secondary port number cannot be retrieved.");
+	  if(secondaryPortNumber==0)secondaryPortNumber=pOpts->portNumber;
+	  CPHTRACEMSG(pConfig->pTrc, "Default secondary port number: %d", secondaryPortNumber)
+	
+	  printf("Secondary port number: %i\n",secondaryPortNumber);
+
+	  maxReconnectTime_ms=0;
+	  minReconnectTime_ms=LONG_MAX;
+	  numThreadsReconnected=0;
+
+    if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &totalThreads, "nt"))
+      configError(pConfig, "(nt) Could not determine number of worker threads.");   
+
     // Input (request) queue.
     if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, "iq"))
       configError(pConfig, "(iq) Cannot determine input (request) queue prefix.");
@@ -97,9 +126,9 @@ MQWTCONSTRUCTOR(Requester, true, true, false) {
 
   CPHTRACEEXIT(pConfig->pTrc)
 }
-Requester::~Requester() {}
+RequesterReconnectTimer::~RequesterReconnectTimer() {}
 
-void Requester::openDestination(){
+void RequesterReconnectTimer::openDestination(){
   CPHTRACEENTRY(pConfig->pTrc)
 
   // Open request queue
@@ -118,7 +147,7 @@ void Requester::openDestination(){
   // Set message type to request
   putMD.MsgType = MQMT_REQUEST;
 
-  //set correlId of message descriptor so requester can select message from reply queue
+  //set correlId of message descriptor so RequesterReconnectTimer can select message from reply queue
   if (useSelector){
     memcpy(putMD.CorrelId, correlId, sizeof(MQBYTE24));
     pmo.Options &= ~MQPMO_NEW_CORREL_ID;
@@ -144,7 +173,7 @@ void Requester::openDestination(){
   CPHTRACEEXIT(pConfig->pTrc)
 }
 
-void Requester::closeDestination(){
+void RequesterReconnectTimer::closeDestination(){
   CPHTRACEENTRY(pConfig->pTrc)
   delete pInQueue;
   pInQueue = NULL;
@@ -154,14 +183,82 @@ void Requester::closeDestination(){
   CPHTRACEEXIT(pConfig->pTrc)
 }
 
-void Requester::msgOneIteration(){
+static bool firstReconnectAttempt=true;
+
+void RequesterReconnectTimer::reconnect(){
+	CPHTRACEENTRY(pConfig->pTrc)
+	//ToDo: Test here for valid codes we're prepared to attempt reconnection for?
+	rtGate.lock();
+	   if(firstReconnectAttempt ){
+		  if(!pOpts->useChannelTable){ 
+	         if(usingPrimaryQM){
+	            pOpts->resetConnectionDef(secondaryHostName,secondaryPortNumber);
+   	            printf("[%s] MQI call failed, attempting to reconnect all threads to queue manager %s on host %s:\n", name.data(),pOpts->QMName,secondaryHostName);
+             } else {
+   	            pOpts->resetConnectionDef(pOpts->hostName,pOpts->portNumber);
+   	            printf("[%s] MQI call failed, attempting to reconnect all threads to queue manager %s on host %s:\n", name.data(),pOpts->QMName,pOpts->hostName);
+
+             }
+		 } else {
+		 	printf("[%s] MQI call failed, attempting to reconnect all threads to next channel in CCDT\n", name.data());
+		 }
+	      firstReconnectAttempt=false;
+	   }
+   	rtGate.notify();	
+	rtGate.unlock();
+	reconnectStart = cphUtilGetNow();	
+	delete pConnection;
+	pConnection = new MQIConnection(this, true);
+	reconnectTime_ms = cphUtilGetTimeDifference(cphUtilGetNow(),reconnectStart);
+	
+	if (reconnectTime_ms > maxReconnectTime_ms)maxReconnectTime_ms = reconnectTime_ms;
+	if (reconnectTime_ms < minReconnectTime_ms)minReconnectTime_ms = reconnectTime_ms;
+	
+    sprintf(messageString, "[%s]: Time to connect to secondary host is %ld ms (min: %ld ms  max: %ld ms)",name.data(),reconnectTime_ms,minReconnectTime_ms,maxReconnectTime_ms);
+    cphLogPrintLn(pConfig->pLog, LOG_INFO, messageString);
+	
+	numThreadsReconnected++;
+	if(numThreadsReconnected == totalThreads){
+       char chTime[80];
+       cphUtilGetTraceTime(chTime);
+	   sprintf(messageString, "[%s]: All threads reconnected at %s",name.data(),chTime);
+	   cphLogPrintLn(pConfig->pLog, LOG_INFO, messageString);
+	   if(usingPrimaryQM){
+	     usingPrimaryQM=false;	
+	   } else {
+		 usingPrimaryQM=true;
+	   }
+	   numThreadsReconnected=0;
+	   firstReconnectAttempt=true;
+   	   maxReconnectTime_ms=0;
+   	   minReconnectTime_ms=LONG_MAX;
+    }
+	openDestination();		
+	CPHTRACEEXIT(pConfig->pTrc)
+}
+
+void RequesterReconnectTimer::msgOneIteration(){
   CPHTRACEENTRY(pConfig->pTrc)
   // Put request
-  pInQueue->put(putMessage, putMD, pmo);
+  int rc=0;
+  rc = pInQueue->put_try(putMessage, putMD, pmo);
+  if (rc !=0){	  
+     reconnect();
+     return;
+  }	  
+  //pInQueue->put(putMessage, putMD, pmo);
 
   // Commit transaction if necessary,
   // otherwise we won't be able to get our reply.
-  if(pOpts->commitPGPut) pConnection->commitTransaction();
+  if(pOpts->txSet) {
+     rc = pConnection->commitTransaction_try();
+     //printf("MQCMIT Reason code : %i\n",rc);
+     if (rc !=0){	  
+	    reconnect();
+	    return;
+     }
+  }
+  //if(pOpts->commitPGPut) pConnection->commitTransaction();
 
   // Get reply
   MQMD getMD = pOpts->getGetMD();
@@ -170,7 +267,22 @@ void Requester::msgOneIteration(){
     cphTraceId(pConfig->pTrc, "Correlation ID", getMD.CorrelId);
   }
 
-  pOutQueue->get(getMessage, getMD, gmo);
+  rc = pOutQueue->get_try(getMessage, getMD, gmo);
+  //printf("MQGET Reason code : %i\n",rc);
+  if (rc !=0){	  
+	  reconnect();
+	  return;
+  }
+  //pOutQueue->get(getMessage, getMD, gmo);
+
+  if(pOpts->txSet) {  //We're registered as a reconnector class so we do all commits ourselves
+  	rc = pConnection->commitTransaction_try();
+	//printf("MQCMIT Reason code : %i\n",rc);
+    if (rc !=0){	  
+	  reconnect();
+	  return;
+    }
+  } 
 
   CPHTRACEEXIT(pConfig->pTrc)
 }

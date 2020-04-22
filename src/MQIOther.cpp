@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2018">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2018 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,14 @@
 
 #include <cstring>
 #include <sstream>
+#include <cstdlib>
 
 #include "MQI.hpp"
 
 using namespace std;
 
 namespace cph {
+bool MQIException::printDetails = true;
 
 /*
  * ----------------------------------------
@@ -45,7 +47,7 @@ MQCMHO const CrtMHOpts = {MQCMHO_DEFAULT};
 MQBMHO const BufMHOpts = {MQBMHO_DEFAULT};
 MQDMHO const DltMHOpts = {MQDMHO_DEFAULT};
 
-MQIConnection::MQIConnection(MQIWorkerThread * const pOwner) :
+MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
     pCurrentThread(pOwner),
     pTrc(pOwner->pConfig->pTrc),
     pLog(pOwner->pConfig->pLog),
@@ -54,14 +56,48 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner) :
   CPHTRACEENTRY(pTrc)
 
   snprintf(msg, CPH_MQC_MSG_LEN, "[%s] Connecting to QM: %s", name, pOpts->QMName);
-  if(pOpts->connType==REMOTE)
-    snprintf(msg+strlen(msg), CPH_MQC_MSG_LEN-strlen(msg), " (host: %s; port: %u; channel: %s)",
-        pOpts->hostName, pOpts->portNumber, pOpts->channelName);
-  cphLogPrintLn(pLog, LOG_VERBOSE, msg);
+  
+  MQCNO cno;
+  //char procId[80];
 
-  MQCNO cno = pOpts->getCNO();
-  CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)
-  ownsConnection = mqrc!=MQRC_ALREADY_CONNECTED;
+  CPH_TIME reconnectStart;
+  long reconnectTime_ms=0;
+  
+  cno = pOpts->getCNO();
+  
+  if(pOpts->connType==REMOTE && !pOpts->useChannelTable){
+	   snprintf(msg+strlen(msg), CPH_MQC_MSG_LEN-strlen(msg), " (connection: %s; channel: %s\n)",
+        ((MQCD*) cno.ClientConnPtr)->ConnectionName, ((MQCD*) cno.ClientConnPtr)->ChannelName);
+       cphLogPrintLn(pLog, LOG_VERBOSE, msg);
+  }
+
+  if(!reconnect){
+	  CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)
+	  ownsConnection = mqrc!=MQRC_ALREADY_CONNECTED;	
+  } else {
+	  int cc;
+	  int rc;
+	  do{
+		 if(pOwner->threadNum==0){ 
+		    reconnectStart = cphUtilGetNow();	
+		 }
+		 cc = 0;
+		 rc = 0;
+	     try{
+	         CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)	
+	     } catch (cph::MQIException e){
+	       cc = e.compCode;
+		   rc = e.reasonCode;
+         } 
+		 //Code to see the results of reconnect attempts for first thread)
+		 //reconnectTime_ms = cphUtilGetTimeDifference(cphUtilGetNow(),reconnectStart);
+   	     //if(pOwner->threadNum==0){
+		 //   cphConfigGetString(pOwner->pConfig, procId, "id");
+   	     //   printf("[%s][%s]====cc: %i;  rc: %i===== Response time: %ld\n",procId,name,cc,rc,reconnectTime_ms);	
+		 //}
+	  } while(cc != 0);
+  }
+
   CPHTRACEEXIT(pTrc)
 }
 
@@ -136,6 +172,25 @@ void MQIConnection::commitTransaction() const{
 }
 
 /*
+ * Method: commitTransaction_try
+ * -------------------------
+ *
+ * Commit any previous operations on objects associated with this HCONN
+ * that were made under syncpoint.
+ */
+MQLONG MQIConnection::commitTransaction_try() const{
+  CPHTRACEENTRY(pTrc)
+	  MQLONG rc =0;
+  try{	
+     CPHCALLMQ(pTrc, MQCMIT, hConn)
+  } catch (cph::MQIException e){
+   rc = e.reasonCode;
+  }
+  CPHTRACEEXIT(pTrc)
+	  return rc;
+}
+
+/*
  * Method: rollbackTransaction
  * ---------------------------
  *
@@ -192,7 +247,7 @@ MQIMessage::MQIMessage(MQIOpts const * const pOpts, bool empty) {
       throw runtime_error("Could not allocate message buffer.");
   } else {
     size_t rfh2size = 0;
-    buffer = (MQBYTE*) (pOpts->useRFH2 ? cphUtilMakeBigStringWithRFH2(pOpts->messageSize, &rfh2size) : cphUtilMakeBigString(pOpts->messageSize));
+    buffer = (MQBYTE*) (pOpts->useRFH2 ? cphUtilMakeBigStringWithRFH2(pOpts->messageSize, &rfh2size) : cphUtilMakeBigString(pOpts->messageSize, pOpts->isRandom));
     if(buffer==NULL) throw runtime_error("Could not allocate message buffer.");
     bufferLen = messageLen = pOpts->messageSize + (MQLONG) rfh2size;
   }
@@ -228,7 +283,7 @@ MQIMessage::~MQIMessage(){
  * ---------------------------------------
  */
 
-inline string getErrorMsg(string functionName, MQLONG compCode, MQLONG reasonCode, MQBYTE24 id, const MQCHAR48 qName){
+inline string getErrorMsg(string functionName, MQLONG compCode, MQLONG reasonCode, MQBYTE24 id, const MQCHAR48 qName, bool printDetails){
   stringstream ss;
   char errorMsg[512] ="";
 
@@ -248,18 +303,20 @@ inline string getErrorMsg(string functionName, MQLONG compCode, MQLONG reasonCod
   }
   else{
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]";
-    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld]", &functionName[0], compCode, reasonCode);
+    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld]\n]", &functionName[0], compCode, reasonCode);
   }
-  printf("Created Error message to pass to runtime_error()");
-  printf(errorMsg);
+  if(printDetails){
+	  printf("Created Error message to pass to runtime_error()\n");
+	  printf(errorMsg);
 
-  fprintf(stderr, "Sending errorMsg to STDERR");
-  fprintf(stderr, errorMsg);
+	  fprintf(stderr, "Sending errorMsg to STDERR\n");
+	  fprintf(stderr, errorMsg);
+  }
   return errorMsg;
 }
 
 MQIException::MQIException(string functionName, MQLONG compCode, MQLONG reasonCode, MQBYTE24 id, const MQCHAR48 qName):
-    runtime_error(getErrorMsg(functionName, compCode, reasonCode, id, qName)),
+    runtime_error(getErrorMsg(functionName, compCode, reasonCode, id, qName, printDetails)),
     function(functionName),
     compCode(compCode),
     reasonCode(reasonCode) {}

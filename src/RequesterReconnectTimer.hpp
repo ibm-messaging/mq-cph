@@ -26,54 +26,50 @@
 /*                                                                             */
 /*******************************************************************************/
 
-#include "SndRcv.hpp"
-#include "cphLog.h"
+#ifndef REQUESTERRECONNECTTIMER_HPP_
+#define REQUESTERRECONNECTTIMER_HPP_
 
-/*
- * Macro: SROC
- * -----------
- *
- * Defines the openDestination and closeDestination methods
- * of the Sender or Receiver class,
- * whose implementations of these methods are virtually identical.
- */
-#define SROC(CLASS, PUT)\
-void CLASS::openDestination(){\
-  CPHTRACEENTRY(pConfig->pTrc)\
-  pQueue = new MQIQueue(pConnection, PUT, ! PUT);\
-  CPH_DESTINATIONFACTORY_CALL_PRINTF(pQueue->setName, pOpts->destinationPrefix, destinationIndex)\
-  pQueue->open(true);\
-  CPHTRACEEXIT(pConfig->pTrc)\
-}\
-\
-void CLASS::closeDestination(){\
-  CPHTRACEENTRY(pConfig->pTrc)\
-  delete pQueue;\
-  pQueue = NULL;\
-  CPHTRACEEXIT(pConfig->pTrc)\
-}
+#include "MQIWorkerThread.hpp"
+#include <cmqc.h>
 
 namespace cph {
 
-MQWTCONSTRUCTOR(Sender, true, false, false) {}
-Sender::~Sender() {}
-SROC(Sender, true)
+/*
+ * Class: RequesterReconnectTimer
+ * ----------------
+ *
+ * Extends: MQIWorkerThread
+ *
+ * Puts a message to a queue, then gets a response back from another queue.
+ */
+MQWTCLASSDEF(RequesterReconnectTimer,
+  static bool useCorrelId;
+  static bool useSelector, useCustomSelector, usingPrimaryQM;
+  static int dqChannels;
+  static char iqPrefix[MQ_Q_NAME_LENGTH];
+  static char oqPrefix[MQ_Q_NAME_LENGTH];
+  static char customSelector[MQ_SELECTOR_LENGTH];
+  static long maxReconnectTime_ms;
+  static long minReconnectTime_ms;
+  static int numThreadsReconnected;
+  static int totalThreads;
+  static char secondaryHostName[80];              //Name of machine hosting queue manager
+  static unsigned int secondaryPortNumber;        //Port to connect to machine on
+  static Lock rtGate;
 
-void Sender::msgOneIteration(){
-  CPHTRACEENTRY(pConfig->pTrc)
-  pQueue->put(putMessage, putMD, pmo);
-  CPHTRACEEXIT(pConfig->pTrc)
+  /*The queue to put to.*/
+  MQIObject * pInQueue;
+  /*The queue to get from.*/
+  MQIObject * pOutQueue;
+  /*The correlId to associate with messages. This is only needed for when we are using message selectors*/
+  MQBYTE24 correlId;
+  
+  CPH_TIME reconnectStart;
+  long reconnectTime_ms;
+  char messageString[512];
+  void reconnect();
+)
+
 }
 
-MQWTCONSTRUCTOR(Receiver, false, true, false) {}
-Receiver::~Receiver() {}
-SROC(Receiver, false)
-
-void Receiver::msgOneIteration(){
-  CPHTRACEENTRY(pConfig->pTrc)
-  MQMD md = {MQMD_DEFAULT};
-  pQueue->get(getMessage, md, gmo);
-  CPHTRACEEXIT(pConfig->pTrc)
-}
-
-}
+#endif /* REQUESTERRECONNECTTIMER_HPP_ */

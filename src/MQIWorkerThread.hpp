@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,10 +64,11 @@ class MQIWorkerThread : public WorkerThread {
 private:
   bool const putter;
   bool const getter;
+  bool const reconnector;
 
 protected:
   /*Command line configuration options, and tools to create derived MQI data structures.*/
-  static MQIOpts const * pOpts;
+  static MQIOpts * pOpts;
   /*A pointer to an MQIConnection object, that can be used to make MQI calls.*/
   MQIConnection * pConnection;
 
@@ -143,7 +144,7 @@ protected:
 
 public:
 
-  MQIWorkerThread(ControlThread* pControlThread, std::string className, bool putter, bool getter);
+  MQIWorkerThread(ControlThread* pControlThread, std::string className, bool putter, bool getter, bool reconnector);
   virtual ~MQIWorkerThread();
 };
 
@@ -161,9 +162,9 @@ __VA_ARGS__\
 };\
 REGISTER_WORKER_IMPL(CLASS)
 
-#define MQWTCONSTRUCTOR(CLASS, PUTTER, GETTER) \
+#define MQWTCONSTRUCTOR(CLASS, PUTTER, GETTER, RECONNECTOR) \
 CLASS::CLASS(cph::ControlThread* pControlThread) :\
-    MQIWorkerThread(pControlThread, #CLASS, PUTTER, GETTER)
+    MQIWorkerThread(pControlThread, #CLASS, PUTTER, GETTER, RECONNECTOR)
 
 }
 #endif /* MQIWORKERTHREAD_H_ */

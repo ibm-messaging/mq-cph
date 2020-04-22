@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ bool PutGet::useSelector = false;
 bool PutGet::useCustomSelector = false;
 char PutGet::customSelector[MQ_SELECTOR_LENGTH];
 
-MQWTCONSTRUCTOR(PutGet, true, true) {
+MQWTCONSTRUCTOR(PutGet, true, true, false) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){

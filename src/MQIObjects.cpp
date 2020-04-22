@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2018">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2018 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,7 +282,6 @@ void MQIObject::put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo) {
   CPHTRACEENTRY(pConn->pTrc)
   if(!canPut)
     throw logic_error("An attempt was made to put to an MQ object that was not open for output.");
-
   if(pConn->pOpts->put1)
     put1(msg, md, pmo);
   else if(hObj!=MQHO_NONE && hObj!=MQHO_UNUSABLE_HOBJ){
@@ -293,6 +292,34 @@ void MQIObject::put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo) {
 
   CPHTRACEEXIT(pConn->pTrc)
 }
+
+/*
+ * Method: put_try (same as put but catch and return error)
+ * ---------------------------------------------------------
+ *
+ * Put a message to this MQIObject.
+ */
+MQLONG MQIObject::put_try(MQIMessage const * const msg, MQMD& md, MQPMO& pmo) {
+  CPHTRACEENTRY(pConn->pTrc)
+  MQLONG rc=0;  
+  if(!canPut)
+    throw logic_error("An attempt was made to put to an MQ object that was not open for output.");
+  if(pConn->pOpts->put1)
+    put1(msg, md, pmo);
+  else if(hObj!=MQHO_NONE && hObj!=MQHO_UNUSABLE_HOBJ){
+    CPHTRACEMSG(pConn->pTrc, "Putting message:\n[%s]", msg->buffer)
+	try{		
+       CPHCALLMQ(pConn->pTrc, MQPUT, pConn->hConn, hObj, &md, &pmo, msg->messageLen, msg->buffer)
+    } catch (cph::MQIException e){
+	   rc = e.reasonCode;
+    } 
+  } else
+    throw logic_error("Cannot put to non-open object handle if put1 is not specified.");
+
+  CPHTRACEEXIT(pConn->pTrc)
+  return rc; 
+}
+
 
 /*
  * Method: put1
@@ -388,6 +415,90 @@ void MQIObject::get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
     }
   }
 }
+
+/*
+ * Method: get_try (same as get but catch and return errors)
+ * ---------------------------------------------------------
+ *
+ * Get a message from this MQIObject.
+ */
+MQLONG MQIObject::get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
+  CPHTRACEENTRY(pConn->pTrc)
+  if(!canGet)
+    throw logic_error("An attempt was made to get from an MQ object that was not open for input.");
+  checkOpen();
+
+  MQMD mdCopy;
+  MQGMO gmoCopy;
+  bool waitUnlimited = gmo.WaitInterval == MQWI_UNLIMITED;
+
+  //if(!(gmo.Options&MQGMO_ACCEPT_TRUNCATED_MSG)){
+    mdCopy = md;
+    gmoCopy = gmo;
+  //}
+
+  MQLONG mqcc=0, mqrc=0;
+
+  while(true){
+
+	//Removing check here, which was likely inserted to speed up controlled shutdown (Ctrl-c)
+    //It has the side affect of the requester stopping before obtaining its final message
+    //pConn->pCurrentThread->checkShutdown();
+
+    if(waitUnlimited) gmo.WaitInterval = CPH_TIMEOUT_UNLIMITED;
+    CPHTRACEMSG(pConn->pTrc, "About to call MQGET.")
+    MQGET(pConn->hConn, hObj, &md, &gmo, msg->bufferLen, msg->buffer, &msg->messageLen, &mqcc, &mqrc);
+    // Reset WaitInterval in case we return.
+    if(waitUnlimited) gmo.WaitInterval = MQWI_UNLIMITED;
+
+    switch(mqrc){
+
+    case MQRC_TRUNCATED_MSG_ACCEPTED:
+      CPHTRACEMSG(pConn->pTrc, "Accepted truncated buffer. Growing buffer to %ld bytes.", msg->messageLen)
+      mqcc = msg->bufferLen;
+      msg->resize(msg->messageLen);
+      msg->messageLen = mqcc;
+      // v Keep going v
+
+    case MQRC_NONE:
+      CPHTRACEMSG(pConn->pTrc, "Got message:\n[%s]", msg->buffer)
+      CPHTRACEEXIT(pConn->pTrc)
+      return mqrc;
+
+    case MQRC_TRUNCATED_MSG_FAILED:
+      CPHTRACEMSG(pConn->pTrc, "Message buffer to small. Growing buffer to %ld bytes and retrying.", msg->messageLen)
+      msg->resize(msg->messageLen);
+      msg->messageLen = 0;
+
+      md = mdCopy;
+      gmo = gmoCopy;
+      continue;
+
+    case MQRC_NO_MSG_AVAILABLE:
+      /*
+       * If we get MQRC_NO_MSG_AVAILABLE,
+       * and the thread has been signalled to shut down,
+       * the likelihood is that this failure is because the
+       * corresponding putter has already stopped,
+       * in which case we should throw a ShutdownException instead
+       * of an MQIException.
+       */
+      pConn->pCurrentThread->checkShutdown();
+      if(waitUnlimited)
+        continue;
+
+      // v Keep going v
+    default:
+      printf("MQGET Return code caused error or not recognized; mqrc:%ld\n", mqrc);
+      printf("MQGET Throwing exception; mqcc:%ld ;Name: %s\n", mqcc, getName());
+      fprintf(stderr, "MQGET Return code caused error or not recognized; mqrc:%ld\n", mqrc);
+      fprintf(stderr, "MQGET Throwing exception; mqcc:%ld ;Name: %s\n", mqcc, getName());
+	  return mqrc;
+	  //throw MQIException("MQGET", mqcc, mqrc, md.CorrelId , getName());
+    }
+  }
+}
+
 
 #define f_id4 "%02X"
 

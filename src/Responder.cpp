@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2018">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2018 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ bool Responder::useSelector = false;
  */
 bool Responder::commitBetween = false;
 
-MQWTCONSTRUCTOR(Responder, true, true), pInQueue(NULL),
+MQWTCONSTRUCTOR(Responder, true, true, false), pInQueue(NULL),
 #ifdef tr1
     oqCache(CPH_RESPONDER_OQ_CACHE_INITIAL_BUCKET_COUNT, &pobj_hash, &pobj_eq),
 #else

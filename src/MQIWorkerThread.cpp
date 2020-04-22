@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,18 +51,18 @@ using namespace std;
 
 namespace cph {
 
-MQIOpts const * MQIWorkerThread::pOpts;
+MQIOpts * MQIWorkerThread::pOpts;
 
-MQIWorkerThread::MQIWorkerThread(ControlThread* pControlThread, string className, bool putter, bool getter) :
+MQIWorkerThread::MQIWorkerThread(ControlThread* pControlThread, string className, bool putter, bool getter, bool reconnector) :
     WorkerThread(pControlThread, className),
-    putter(putter), getter(getter), pConnection(NULL),
+    putter(putter), getter(getter), reconnector(reconnector), pConnection(NULL),
     putMsgHandle(MQHM_NONE), putMessage(NULL),
     getMsgHandle(MQHM_NONE), getMessage(NULL) {
   CPHTRACEENTRY(pConfig->pTrc)
 
   if(threadNum==0){
 
-    pOpts = new MQIOpts(pConfig, putter, getter);
+    pOpts = new MQIOpts(pConfig, putter, getter, reconnector);
 
     /* Load the server or client MQ library as appropriate */
     if (0 != cphMQSplitterCheckMQLoaded(pConfig->pLog, pOpts->connType==REMOTE ? 1 : 0))
@@ -95,7 +95,7 @@ MQIWorkerThread::~MQIWorkerThread(){
 void MQIWorkerThread::openSession(){
   CPHTRACEENTRY(pConfig->pTrc)
 
-  pConnection = new MQIConnection(this);
+  pConnection = new MQIConnection(this, false);
 
   if(putter){
     putMD = pOpts->getPutMD();
@@ -137,7 +137,7 @@ void MQIWorkerThread::closeSession(){
 
 void MQIWorkerThread::oneIteration(){
   msgOneIteration();
-  if(pOpts->commitFrequency>0 && (getIterations()+1)%pOpts->commitFrequency==0)
+  if(pOpts->commitFrequency>0 && (getIterations()+1)%pOpts->commitFrequency==0 && !reconnector)
     pConnection->commitTransaction();
 }
 

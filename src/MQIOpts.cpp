@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,13 @@ static inline void configError(CPH_CONFIG* pConfig, string msg){
 
 namespace cph {
 
-MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
+MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector) {
   CPHTRACEREF(pTrc, pConfig->pTrc)
   CPHTRACEENTRY(pTrc)
 
   char temp[80];
   int tempInt;
-  bool txSet=false;
+  txSet=false;
 
   //Initialising here, so that we get a predictable default and AIX/iSeries dont like initialisers in header files
   commitPGPut = false;
@@ -80,7 +80,8 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
   MQCD protoCD = {MQCD_CLIENT_CONN_DEFAULT};
   MQCSP protoCSP = {MQCSP_DEFAULT};
 
-  //CNO Will be updated to version 4 or 5 if SSL or User/Password authentication is in use
+  //CNO Will be updated to version 4, 5 or 6 if SSL, User/Password authentication, or CCDT is in use
+  //(CCDT code uses URL set programatically in MQCNO - introduced in V9.0)
   protoCNO.Version = MQCNO_VERSION_2;
 
   /* This needs to be set to at least version 9 for shared conv to work */
@@ -118,30 +119,27 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
       configError(pConfig, "(pw) Default password cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Password: %s", password)
 
+	//Use ccdt
+	if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, "ccdt"))
+		configError(pConfig, "(ccdt) Cannot retrieve CCDT URL default.");
+	if (strcmp(ccdtURL,"") != 0)
+		useChannelTable=true;
+	CPHTRACEMSG(pTrc, "CCDT URL: %s", ccdtURL)
 
-    CPHTRACEMSG(pTrc, "Setting up MQCD for remote connection.")
-
-    char tempName[MQ_CONN_NAME_LENGTH];
-    sprintf(tempName, "%s(%u)", hostName, portNumber);
-    strncpy(protoCD.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
-    CPHTRACEMSG(pTrc, "Connection name: %s", protoCD.ConnectionName)
-
-    strncpy(protoCD.ChannelName, channelName, MQ_CHANNEL_NAME_LENGTH);
-    CPHTRACEMSG(pTrc, "Channel name: %s", protoCD.ChannelName)
-
-    /* Setting a very large value means that the client will obey the setting on the server */
-    protoCD.SharingConversations = 99999999;
-    CPHTRACEMSG(pTrc, "Setting SHARECNV value to %d.", protoCD.SharingConversations)
-
-    /*Set the max messagelength on the clientconn channel to the maximum permissable */
-	protoCD.MaxMsgLength = 104857600;
-    CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
+ 	//Automatic Reconnection
+	if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "ar"))
+		configError(pConfig, "(ar) Cannot retrieve automatic reconnection option.");
+	autoReconnect = tempInt==CPHTRUE;
+	CPHTRACEMSG(pTrc, "Automatic re-connect: %i", autoReconnect)
+		
+	if(autoReconnect && !useChannelTable){
+		configError(pConfig, "(ar) -ccdt must be set if using automatic reconnect.");
+	}
 	
-
     //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
     if (strcmp(cipherSpec,"") != 0) {
       //CSP is only used for password authentication
-      //MQCSP protoCSP = {MQCSP_DEFAULT};
+      //MQCSP csp = {MQCSP_DEFAULT};
       //SCO structure used in conjunction with SSL fields in MQCD
       //MQSCO protoSCO = {MQSCO_DEFAULT};
       //Override key repository
@@ -155,14 +153,8 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
       protoCNO.Version = MQCNO_VERSION_4;
       //MQCD/protoCD set to version 9 above
       //protoSCO.Version = MQSCO_VERSION_4;   //Not used
-
-      //Set CipherSpec
-      strncpy(protoCD.SSLCipherSpec, cipherSpec, MQ_SSL_CIPHER_SPEC_LENGTH);
-
-      //Were only currently setting values in the MQCD, so might not need to bother setting the MQCSP and MQSCO into the MQCNO
-      //protoCNO.SSLConfigPtr = &protoSCO;
     }
-
+	
     // Setup userid and password if they have been defined
     if (strcmp(username,"") != 0) {
         protoCSP.CSPUserIdPtr = &username;
@@ -178,19 +170,62 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
         //Username/password authentication requires MQCNO_VERSION 5
         protoCNO.Version = MQCNO_VERSION_5;
 
-        csp = protoCSP;
+		csp = protoCSP;
         protoCNO.SecurityParmsPtr = &csp;
     }
 
-    cd = protoCD;
-    protoCNO.ClientConnPtr = &cd;
+    if(!useChannelTable) { 
+       CPHTRACEMSG(pTrc, "Setting up MQCD for remote connection.")
+       char tempName[MQ_CONN_NAME_LENGTH];
+       sprintf(tempName, "%s(%u)", hostName, portNumber);
+       strncpy(protoCD.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
+       CPHTRACEMSG(pTrc, "Connection name: %s", protoCD.ConnectionName)
+
+       strncpy(protoCD.ChannelName, channelName, MQ_CHANNEL_NAME_LENGTH);
+       CPHTRACEMSG(pTrc, "Channel name: %s", protoCD.ChannelName)
+    
+
+       /* Setting a very large value means that the client will obey the setting on the server */
+       protoCD.SharingConversations = 99999999;
+       CPHTRACEMSG(pTrc, "Setting SHARECNV value to %d.", protoCD.SharingConversations)
+
+       /*Set the max messagelength on the clientconn channel to the maximum permissable */
+	   protoCD.MaxMsgLength = 104857600;
+       CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
+	
+
+       //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
+       if (strcmp(cipherSpec,"") != 0) {
+         //Set CipherSpec
+         strncpy(protoCD.SSLCipherSpec, cipherSpec, MQ_SSL_CIPHER_SPEC_LENGTH);
+
+         //Were only currently setting values in the MQCD, so might not need to bother setting the MQCSP and MQSCO into the MQCNO
+         //protoCNO.SSLConfigPtr = &protoSCO;
+       }
+	   cd = protoCD;
+	   protoCNO.ClientConnPtr = &cd;
+    } else {
+ 	   protoCNO.Version = MQCNO_VERSION_6;
+       protoCNO.CCDTUrlPtr = ccdtURL;
+	   protoCNO.CCDTUrlLength = (MQLONG)strlen(ccdtURL);
+    }
   } else if(connType==FASTPATH) {
     CPHTRACEMSG(pTrc, "Setting fastpath option")
     protoCNO.Options |= MQCNO_FASTPATH_BINDING;
   }
-
+  
+  if(autoReconnect) { 
+     CPHTRACEMSG(pTrc, "Setting auotmatic reconnect option")
+	 protoCNO.Options |= MQCNO_RECONNECT_Q_MGR;
+  }
+  
   cno = protoCNO;
-
+  
+  //Create backups of initially configured MQCNO & MQCD for use by
+  //resetConnectionDef
+  cd2 = protoCD;
+  cno2 = protoCNO;
+  
   /*
    * -----------------
    * Put & Get Options
@@ -222,6 +257,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
       configError(pConfig, "(ms) Cannot retrieve message size.");
     if(messageSize==0) messageSize = 1000;
     CPHTRACEMSG(pTrc, "Message size: %d", messageSize)
+
+    //Randomise Message
+       if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "mr"))
+      configError(pConfig, "(mr) Cannot retrieve message randomise option.");
+    isRandom = tempInt==CPHTRUE;
+    CPHTRACEMSG(pTrc, "Random message content: %s", isRandom ? "yes" : "no")
 
     //Use message handle?
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "mh"))
@@ -272,7 +313,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter) {
 			   commitFrequency = 1;
 		    }
 	    }
-	 } 
+	 } else {
+		 //ReconnectTimer modules are a special case that have both commits in the msgOneIteration function.
+		 //If we're using transactions then setting commitFrequency to 0 will stop the MQIWorkerThread
+		 //class from committing outside of the msgOneIteration function for this case, as it's already been committed
+		 if(reconnector && txSet )commitFrequency=0;
+	 }
   }
   
   /*
@@ -375,4 +421,13 @@ MQMD MQIOpts::getGetMD() const {
   return getMD;
 }
 
+//Reset the MQCD & MQCNO with a specified (new?) host and port.
+//Provided for non-CCDT reconnect test classes. 
+void MQIOpts::resetConnectionDef(char *hostname, int port) {
+	char tempName[MQ_CONN_NAME_LENGTH];
+	cd=cd2;
+	cno=cno2;
+		sprintf(tempName, "%s(%u)", hostname, port);
+	strncpy(cd.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
+}
 }

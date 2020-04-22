@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2020">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ namespace cph {
 bool PublisherV6::topicPerMsg;
 char PublisherV6::streamQName[MQ_Q_NAME_LENGTH];
 
-MQWTCONSTRUCTOR(PublisherV6, true, false),
+MQWTCONSTRUCTOR(PublisherV6, true, false, false),
     pDestFactory(pControlThread->pDestinationFactory),
     headerLen(CPH_PUBLISHERV6_INITIAL_BUFFER_LENGTH) {
   CPHTRACEENTRY(pConfig->pTrc)
@@ -81,7 +81,7 @@ MQWTCONSTRUCTOR(PublisherV6, true, false),
   putMessage->resize(headerLen + pOpts->messageSize + 1);
 
   // Generate payload, and append it to the buffer
-  MQBYTE * buffer = (MQBYTE*) cphUtilMakeBigString(pOpts->messageSize);
+  MQBYTE * buffer = (MQBYTE*) cphUtilMakeBigString(pOpts->messageSize, pOpts->isRandom);
   strcpy((char*) putMessage->buffer + headerLen, (char*) buffer);
   putMessage->messageLen = putMessage->bufferLen;
 
