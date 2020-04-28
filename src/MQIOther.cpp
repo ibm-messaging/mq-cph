@@ -61,7 +61,7 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
   //char procId[80];
 
   CPH_TIME reconnectStart;
-  long reconnectTime_ms=0;
+  //long reconnectTime_ms=0;
   
   cno = pOpts->getCNO();
   

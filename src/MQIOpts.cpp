@@ -122,8 +122,10 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	//Use ccdt
 	if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, "ccdt"))
 		configError(pConfig, "(ccdt) Cannot retrieve CCDT URL default.");
-	if (strcmp(ccdtURL,"") != 0)
-		useChannelTable=true;
+    if (strcmp(ccdtURL, "") != 0) {
+        useChannelTable = true;
+       }
+    else useChannelTable = false;
 	CPHTRACEMSG(pTrc, "CCDT URL: %s", ccdtURL)
 
  	//Automatic Reconnection

@@ -566,9 +566,8 @@ char *cphUtilMakeBigString(int size, int randomise) {
             if (c > 122) c = 65;
           }
         } else {
-          srand(time(0)); 
           for (i=0; i < size; i++) {
-            c = rand() % 58 + 65;   /*random number in range 65-122*/
+            c = rand() % 58 + 65;   /*pseudo-random number in range 65-122. rand is left unseeded so tests are repeatable*/
             str[i] = c;
           }
         }
@@ -576,7 +575,6 @@ char *cphUtilMakeBigString(int size, int randomise) {
     /* Null terminate the string for trace etc */
     str[size - 1] = '\0';
     }
-
     return(str);
 }
 
