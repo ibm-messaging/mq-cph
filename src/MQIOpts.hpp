@@ -80,7 +80,8 @@ public:
   char cipherSpec[MQ_SSL_CIPHER_SPEC_LENGTH]; //Name of cipherSpec
   MQCHAR username[MQ_USER_ID_LENGTH + 1];
   MQCHAR password[MQ_CSP_PASSWORD_LENGTH + 1];
-  bool autoReconnect;
+  char autoReconnect[40];
+  MQCHAR28 applName;
   bool useChannelTable;
   char ccdtURL[512];
 

@@ -254,16 +254,17 @@ void MQIObject::open(bool log) {
       if(pConn->pOpts->readAhead) opts |= MQOO_READ_AHEAD;
     }
 
-    if(bpstrnlen(getQMName(), MQ_Q_MGR_NAME_LENGTH)==0)
-      setQMName(&(pConn->pOpts->QMName));
+    if(bpstrnlen(getQMName(), MQ_Q_MGR_NAME_LENGTH)==0){
+      //This method used to set the QM name from pOpts for debug purposes, but this breaks a uniform cluster
+      //app if it's moved to another QM
+      //setQMName(&(pConn->pOpts->QMName));
+      setQMName("");
+    }
 
     if(log){
-      snprintf(pConn->msg, CPH_MQC_MSG_LEN, "[%s] Opening %s: %.*s", pConn->name,
-          desc, MQ_Q_NAME_LENGTH, getName());
-      if(bpstrncmp(pConn->pOpts->QMName, getQMName(), MQ_Q_MGR_NAME_LENGTH))
-        snprintf(pConn->msg+strlen(pConn->msg), CPH_MQC_MSG_LEN-strlen(pConn->msg),
-            " (QM: %.*s)",
-            MQ_Q_MGR_NAME_LENGTH, getQMName());
+      snprintf(pConn->msg, CPH_MQC_MSG_LEN, "[%s] Opening %s: %.*s (QM: %.*s)", pConn->name,
+          desc, (int)bpstrnlen(getName(), MQ_Q_MGR_NAME_LENGTH), getName(),
+          (int)bpstrnlen(getQMName(), MQ_Q_MGR_NAME_LENGTH), getQMName());
       cphLogPrintLn(pConn->pLog, LOG_VERBOSE, pConn->msg);
     }
 

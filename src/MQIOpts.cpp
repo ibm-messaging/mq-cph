@@ -87,7 +87,6 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   /* This needs to be set to at least version 9 for shared conv to work */
   protoCD.Version = 9;
 
-
   if(connType==REMOTE){
     //Channel name
     if (CPHTRUE != cphConfigGetString(pConfig, channelName, "jc"))
@@ -129,13 +128,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	CPHTRACEMSG(pTrc, "CCDT URL: %s", ccdtURL)
 
  	//Automatic Reconnection
-	if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "ar"))
+  if (CPHTRUE != cphConfigGetString(pConfig, autoReconnect, "ar"))
 		configError(pConfig, "(ar) Cannot retrieve automatic reconnection option.");
-	autoReconnect = tempInt==CPHTRUE;
-	CPHTRACEMSG(pTrc, "Automatic re-connect: %i", autoReconnect)
-		
-	if(autoReconnect && !useChannelTable){
-		configError(pConfig, "(ar) -ccdt must be set if using automatic reconnect.");
+	CPHTRACEMSG(pTrc, "Automatic re-connect: %s", autoReconnect)
+	
+  if(strcmp(autoReconnect,"") != 0 && strcmp(autoReconnect,"MQCNO_RECONNECT_DISABLED") != 0 && strcmp(ccdtURL,"") == 0){
+		configError(pConfig, string("(ar) -ccdt must be set if using reconnect option specified : ") + autoReconnect);
 	}
 	
     //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
@@ -215,10 +213,23 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     CPHTRACEMSG(pTrc, "Setting fastpath option")
     protoCNO.Options |= MQCNO_FASTPATH_BINDING;
   }
+
+  //ApplName (APPLTAG)
+  if (CPHTRUE != cphConfigGetString(pConfig, applName, "an"))
+		configError(pConfig, "(an) Cannot retrieve applName option.");
+	CPHTRACEMSG(pTrc, "applName: %s", applName)
+
+  if(strcmp(applName,"") != 0) {
+    protoCNO.Version = MQCNO_VERSION_7;
+    strcpy(protoCNO.ApplName,applName);
+  }
   
-  if(autoReconnect) { 
-     CPHTRACEMSG(pTrc, "Setting auotmatic reconnect option")
-	 protoCNO.Options |= MQCNO_RECONNECT_Q_MGR;
+  if(strcmp(autoReconnect,"") != 0){
+     CPHTRACEMSG(pTrc, "Setting automatic reconnect option to %s", autoReconnect)
+     if(strcmp(autoReconnect,"MQCNO_RECONNECT_AS_DEF") == 0) protoCNO.Options |= MQCNO_RECONNECT_AS_DEF;
+     if(strcmp(autoReconnect,"MQCNO_RECONNECT") == 0) protoCNO.Options |= MQCNO_RECONNECT;
+     if(strcmp(autoReconnect,"MQCNO_RECONNECT_Q_MGR") == 0) protoCNO.Options |= MQCNO_RECONNECT_Q_MGR;
+     if(strcmp(autoReconnect,"MQCNO_RECONNECT_DISABLED") == 0) protoCNO.Options |= MQCNO_RECONNECT_DISABLED;
   }
   
   cno = protoCNO;
