@@ -78,6 +78,7 @@ public:
   char hostName[80];              //Name of machine hosting queue manager
   unsigned int portNumber;          //Port to connect to machine on
   char cipherSpec[MQ_SSL_CIPHER_SPEC_LENGTH]; //Name of cipherSpec
+  MQCHAR certLabel[MQ_CERT_LABEL_LENGTH + 1]; //Name of cert label
   MQCHAR username[MQ_USER_ID_LENGTH + 1];
   MQCHAR password[MQ_CSP_PASSWORD_LENGTH + 1];
   char autoReconnect[40];

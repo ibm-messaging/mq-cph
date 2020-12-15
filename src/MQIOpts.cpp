@@ -85,7 +85,8 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   protoCNO.Version = MQCNO_VERSION_2;
 
   /* This needs to be set to at least version 9 for shared conv to work */
-  protoCD.Version = 9;
+  // Increasing to 11 to support certificate labels
+  protoCD.Version = 11;
 
   if(connType==REMOTE){
     //Channel name
@@ -107,6 +108,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     if (CPHTRUE != cphConfigGetString(pConfig, cipherSpec, "jl"))
       configError(pConfig, "(jl) Default CipherSpec cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Cipher Spec: %s", cipherSpec)
+
+    //TLS Cert Label
+    if (CPHTRUE != cphConfigGetString(pConfig, certLabel, "jw"))
+      configError(pConfig, "(jw) Certificate label cannot be retrieved.");
+    CPHTRACEMSG(pTrc, "Certificate Label: %s", certLabel)
 
     //Username
     if (CPHTRUE != cphConfigGetString(pConfig, username, "us"))
@@ -198,6 +204,9 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
        if (strcmp(cipherSpec,"") != 0) {
          //Set CipherSpec
          strncpy(protoCD.SSLCipherSpec, cipherSpec, MQ_SSL_CIPHER_SPEC_LENGTH);
+
+         //Set CertLabel
+         strncpy(protoCD.CertificateLabel, certLabel, MQ_CERT_LABEL_LENGTH);
 
          //Were only currently setting values in the MQCD, so might not need to bother setting the MQCSP and MQSCO into the MQCNO
          //protoCNO.SSLConfigPtr = &protoSCO;
@@ -440,7 +449,7 @@ void MQIOpts::resetConnectionDef(char *hostname, int port) {
 	char tempName[MQ_CONN_NAME_LENGTH];
 	cd=cd2;
 	cno=cno2;
-		sprintf(tempName, "%s(%u)", hostname, port);
+		sprintf(tempName, "%s(%d)", hostname, port);
 	strncpy(cd.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
 }
 }
