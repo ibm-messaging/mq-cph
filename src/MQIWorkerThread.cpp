@@ -198,11 +198,22 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & id, char const * const procId)
   strcpy(localproc, procId);
   if (procIdLen == 0){
     static uint32_t correlIdBase = getCorrelIdBase(pConfig->pTrc);
-	char const * const threadPart = ((name.length() > 14) ? name.substr(name.length() - 15, 14).data() : name.data());
-    snprintf((char*)id, 24, "%x-%s", correlIdBase, threadPart);
+    if (name.length() > 14) {
+       snprintf((char*)id, 24, "%x-%s", correlIdBase, name.substr(name.length() - 15, 14).data());
+	} else {
+        snprintf((char*)id, 24, "%x-%s", correlIdBase, name.data());
+	}
   }
   else {
-	char const * const threadPart = ((name.length() > 18) ? name.substr(name.length() - 19, 18).data() : name.data());
+    string adjustedName;
+    //Additional code added to avoid potentially dangling pointer of temporary value returned from substr
+	if (name.length() > 18) { 
+	   adjustedName = name.substr(name.length() - 19, 18);
+	} else {
+	   adjustedName = name;
+	}
+	char const * const threadPart = adjustedName.data();
+	
 	size_t remaining = 22 - strlen(threadPart);
 	if (procIdLen > remaining) {
 	  strncpy(procPart, &localproc[procIdLen - remaining], remaining);
