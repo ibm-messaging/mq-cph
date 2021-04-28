@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2020">*/
+/*<copyright notice="lm-source" pids="" years="2007,2021">*/
 /*******************************************************************************
- * Copyright (c) 2007,2020 IBM Corp.
+ * Copyright (c) 2007,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ extern volatile sig_atomic_t cphControlCInvoked;
 #if defined(AMQ_NT)
 // Performance counter frequency (used for timing).
 long CountsPerMillisecond;
+long CountsPerMicrosecond;
 uint64_t performanceFrequency;
 #endif
 
@@ -164,6 +165,26 @@ long cphUtilGetTimeDifference(CPH_TIME time1, CPH_TIME time2) {
    return (long) ((time1.tv_sec-time2.tv_sec)*1000 + (time1.tv_usec-time2.tv_usec)/1000);
 #elif defined(CPH_UNIX)
    return (long) ((time1.tv_sec-time2.tv_sec)*1000 + (time1.tv_nsec-time2.tv_nsec)/1000000);
+#endif
+
+}
+long cphUtilGetUsTimeDifference(CPH_TIME time1, CPH_TIME time2) {
+
+#if defined(AMQ_NT)
+   if(CountsPerMicrosecond==0){
+      LARGE_INTEGER freq;
+      QueryPerformanceFrequency(&freq);
+      CountsPerMicrosecond = (long) (freq.QuadPart/1000000);
+   }
+   return (long) ((time1.QuadPart-time2.QuadPart)/CountsPerMicrosecond);
+#elif defined(AMQ_AS400) || defined(AMQ_DARWIN)
+   return (long) ((time1.tv_sec-time2.tv_sec)*1000000 + (time1.tv_usec-time2.tv_usec));
+#elif defined(CPH_UNIX)
+   if(time1.tv_nsec > time2.tv_nsec){
+	return (long) ((time1.tv_sec - time2.tv_sec) * 1000000 - (time2.tv_nsec - time1.tv_nsec)/1000);
+} else {
+	return (long) ((time1.tv_sec - time2.tv_sec) * 1000000 + (time1.tv_nsec - time2.tv_nsec)/1000);
+}
 #endif
 
 }
