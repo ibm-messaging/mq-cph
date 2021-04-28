@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2021">*/
+/*<copyright notice="lm-source" pids="" years="2014,2017">*/
 /*******************************************************************************
- * Copyright (c) 2014,2021 IBM Corp.
+ * Copyright (c) 2014,2017 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,19 +116,6 @@ private:
   CPH_TIME startTime;
   /*The time when the thread completes execution.*/
   CPH_TIME endTime;
-  
-  /*Latency stats variables*/
-  bool collectLatencyStats;
-  long maxLatency;
-  long minLatency;
-  long avgLatency;
-  long latencyIter;
-
-  CPH_TIME latencyStartTime;
-  CPH_TIME latencyStopTime;
-  long latency;
-
-  
   /*A pointer to the control thread that created this WorkerThread.*/
   ControlThread * const pControlThread;
 
@@ -196,8 +183,6 @@ public:
   virtual ~WorkerThread();
   unsigned int getState() const;
   unsigned int getIterations() const;
-  void setCollectLatencyStats(bool flag);
-  void getLatencyStats(long statsArray[]);
   CPH_TIME getStartTime() const;
   CPH_TIME getEndTime() const;
 };

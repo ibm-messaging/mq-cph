@@ -96,7 +96,7 @@ MQWTCONSTRUCTOR(RequesterReconnectTimer, true, true, true) {
 	  if(secondaryPortNumber==0)secondaryPortNumber=pOpts->portNumber;
 	  CPHTRACEMSG(pConfig->pTrc, "Default secondary port number: %d", secondaryPortNumber)
 	
-	  printf("Secondary port number: %u\n",secondaryPortNumber);
+	  printf("Secondary port number: %i\n",secondaryPortNumber);
 
 	  maxReconnectTime_ms=0;
 	  minReconnectTime_ms=LONG_MAX;
