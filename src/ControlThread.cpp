@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2021">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@
 #include <time.h>
 #include <exception>
 #include <csignal>
+#include <limits.h>
 
 #ifdef CPH_WINDOWS
 #include "msint.h"
@@ -95,10 +96,14 @@ class StatsThread : public Thread {
   ControlThread const * const pControlThread;
   unsigned int const statsInterval;
   bool statsPerThread;
+  bool collectLatencyStats;
 
 public:
-
-  StatsThread(ControlThread const * const pControlThread, unsigned int const interval) :
+  long minLatency;
+  long maxLatency;
+  long avgLatency;
+  
+  StatsThread(ControlThread const * const pControlThread, unsigned int const interval, bool collectLatencyStatsIn) :
       Thread(pControlThread->pConfig),
       pControlThread(pControlThread), statsInterval(interval) {
 
@@ -109,7 +114,7 @@ public:
       configError(pConfig, "(sp) Could not determine whether to display per-thread performance data.");
     statsPerThread = temp==CPHTRUE;
     CPHTRACEMSG(pControlThread->pConfig->pTrc, "Display per-thread performance data %s.", statsPerThread ? "yes" : "no")
-
+    collectLatencyStats = collectLatencyStatsIn;
     CPHTRACEEXIT(pControlThread->pConfig->pTrc)
   }
 
@@ -125,6 +130,13 @@ protected:
     std::vector<unsigned int> * prev = new std::vector<unsigned int>();
     std::vector<unsigned int> * curr = new std::vector<unsigned int>();
     std::vector<unsigned int> * temp;
+
+    long latencyStats[3];
+    int statIter=0;
+    minLatency=LONG_MAX;
+    maxLatency=0;
+    avgLatency=0;
+
 
     std::stringstream ss;
 
@@ -142,6 +154,7 @@ protected:
         long elapsedTime;                            /* elapsed time in milli-sec */
         CPH_TIME endTime;                            /* end of sleep time         */
 
+        statIter++;
         sleep(statsInterval * 1000);
 
         temp = prev;
@@ -149,6 +162,14 @@ protected:
         curr = temp;
         running = pControlThread->getThreadStats(*curr);
         endTime = cphUtilGetNow();
+        
+        /*We just collect latency stats for thread 0 right now*/
+        if(collectLatencyStats) {
+           pControlThread->getThreadLatencyStats(latencyStats,0);
+           if(latencyStats[1] > maxLatency)maxLatency= latencyStats[1];
+           if(latencyStats[2] < minLatency)minLatency= latencyStats[2];
+           avgLatency=((avgLatency * (statIter-1)) + latencyStats[0]) / (statIter);
+        }
 
         total=0;
         std::stringstream ss2;
@@ -176,10 +197,14 @@ protected:
         /* Set the start time to the end time, for the next sleep */
         cphCopyTime(&startTime, &endTime);
 
-        char buff[80];
+        char buff[160];
         sprintf(buff, "rate=%.2f,threads=%u", (double) total / (elapsedTime / 1000), running);
         ss2 << buff;
 
+        if(collectLatencyStats){
+          sprintf(buff,",avg_latency(%lcs)=%ld,max_latency(%lcs)=%ld,min_latency(%lcs)=%ld",L'\u00b5',latencyStats[0],L'\u00b5',latencyStats[1],L'\u00b5',latencyStats[2]);
+          ss2 << buff;
+        }
         cphLogPrintLn(pLog, LOG_INFO, ss2.str().data());
 
       }
@@ -270,6 +295,7 @@ void ControlThread::run() {
 
   /* Options Variables */
   bool doFinalSummary, reportTlf = false;
+  bool collectLatencyStats = false;
   //int threadStackSize;
   unsigned int numWorkers, threadStartInterval, threadStartTimeout, runLength;
 
@@ -316,13 +342,18 @@ void ControlThread::run() {
       configError(pConfig, "(id) Could not determine process identifier.");
     CPHTRACEMSG(pTrc, "Process Id: %s.", procId)
 
+    if (CPHTRUE != cphConfigGetBoolean(pConfig, &temp, "ls"))
+      configError(pConfig, "(ls) Could not determine whether to display latency performance data for thread 0.");
+    collectLatencyStats = temp==CPHTRUE;
+    CPHTRACEMSG(pTrc, "Display latency performance data for thread 0 %s.", collectLatencyStats ? "yes" : "no")
+
     /* Start the stats thread if the specified interval is greater than zero */
     if (CPHTRUE != cphConfigGetInt(pConfig, (int *) &temp, "ss"))
       configError(pConfig, "(ss) Could not determine stats interval.");
     CPHTRACEMSG(pTrc, "Stats interval: %d.", temp)
     // Create stats thread if needed
     if(temp>0)
-      pStatsThread = new StatsThread(this, temp);
+      pStatsThread = new StatsThread(this, temp, collectLatencyStats);
 
 #ifdef DISABLED
     if (CPHTRUE != cphConfigGetInt(pConfig, &threadStackSize, "ts"))
@@ -361,6 +392,10 @@ void ControlThread::run() {
 
     if(cphConfigIsInvalid(pConfig)==CPHTRUE)
       throw std::runtime_error("Configuration is invalid.");
+
+    if(pStatsThread!=NULL && collectLatencyStats){
+      workers[0]->setCollectLatencyStats(true);
+    }
 
   } catch (std::runtime_error &e) {
     /* If the configuration is invalid at this point, print a message and exit before starting any worker threads */
@@ -456,7 +491,7 @@ void ControlThread::run() {
     CPHTRACEMSG(pTrc, "Using approximate value of end time")
     endTime = approxEndTime;
   }
-
+  
   if(doFinalSummary) {
     double duration = cphUtilGetDoubleDuration(startTime, endTime);
 
@@ -464,7 +499,18 @@ void ControlThread::run() {
         "totalIterations=%u,totalSeconds=%.2f,avgRate=%.2f",
         iterations, duration, (double)iterations/duration);
     cphLogPrintLn(pLog, LOG_WARNING, tempStr);
+    
+    if(pStatsThread != NULL && collectLatencyStats){
+      sprintf(tempStr,
+         "avg_latency(%lcs)=%ld,max_latency(%lcs)=%ld,min_latency(%lcs)=%ld",
+         L'\u00b5',pStatsThread->avgLatency,
+         L'\u00b5',pStatsThread->maxLatency,
+         L'\u00b5',pStatsThread->minLatency);
+      cphLogPrintLn(pLog, LOG_WARNING, tempStr);
+    }
+    
   }
+  
   cphLogPrintLn(pLog, LOG_VERBOSE, "controlThread STOP");
 
   if(exceptionCaught)
@@ -489,11 +535,24 @@ unsigned int ControlThread::getThreadStats(std::vector<unsigned int> &stats) con
   stats.clear();
   stats.reserve(workers.size());
 
-  for(std::vector<WorkerThread *>::const_iterator it = workers.begin(); it != workers.end(); ++it)
+  for(std::vector<WorkerThread *>::const_iterator it = workers.begin(); it != workers.end(); ++it) {
     stats.push_back((*it)->getIterations());
+  }
 
   CPHTRACEEXIT(pConfig->pTrc)
   return runningWorkers;
+}
+
+/*
+** Method: getThreadLatencyStats
+**
+** This method populates an array with the values of avg, max & min latencies recorded by
+*  the thread specified since the last time this was called.
+*  TODO: Generalise this to be more in line with getThreadStats, populating a vector of arrays
+*  for all threads (array empty where latency stats are not enabled?) and returning a count of runningWorkers
+*/
+void ControlThread::getThreadLatencyStats(long latencyStats[], int threadId) const {
+     workers[threadId]->getLatencyStats(latencyStats);
 }
 
 /*
