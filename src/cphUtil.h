@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2021">*/
+/*<copyright notice="lm-source" pids="" years="2007,2020">*/
 /*******************************************************************************
- * Copyright (c) 2007,2021 IBM Corp.
+ * Copyright (c) 2007,2020 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ void cphUtilSleep( int mSecs );
 CPH_TIME cphUtilGetNow(void);
 int cphUtilTimeIni(CPH_TIME *pTime);
 long cphUtilGetTimeDifference(CPH_TIME time1, CPH_TIME time2);
-long cphUtilGetUsTimeDifference(CPH_TIME time1, CPH_TIME time2);
 int cphUtilTimeCompare(CPH_TIME time1, CPH_TIME time2);
 void cphCopyTime(CPH_TIME *pTimeDst, CPH_TIME *pTimeSrc);
 int cphUtilTimeIsZero(CPH_TIME pTime);
