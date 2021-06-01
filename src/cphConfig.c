@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2019">*/
+/*<copyright notice="lm-source" pids="" years="2007,2021">*/
 /*******************************************************************************
- * Copyright (c) 2007,2019 IBM Corp.
+ * Copyright (c) 2007,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -545,9 +545,9 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
         }
 
     switch (i) {
-		CPH_BUNDLE *module_bundle;
+      CPH_BUNDLE *module_bundle;
 
-	  case 1 : /* -h */
+      case 1 : /* -h */
         cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
         cphLogPrintLn(pConfig->pLog, LOG_INFO, "(use -hf to see more help options)" );
         cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribe(pConfig, CPHFALSE) );
@@ -560,18 +560,20 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
         cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribe(pConfig, CPHTRUE) );
         break;
       case 5 : /* -hm */
-                cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
-				if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)){
-					if(CPHTRUE != cphConfigRegisterModule(pConfig, module)){
-						cphLogPrintLn(pConfig->pLog, LOG_ERROR, "Help for unknown module requested");
-						module_bundle=NULL;
-					} else {
-					    if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)) module_bundle=NULL;
-				    }
-				}
-				if(module_bundle != NULL){
-                    cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribeModule(pConfig, module_bundle, CPHTRUE) );
-				}
+        cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigGetVersion(pConfig, versionString));
+        if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)){
+            if(CPHTRUE != cphConfigRegisterModule(pConfig, module)){
+                cphLogPrintLn(pConfig->pLog, LOG_ERROR, "Help for unknown module requested");
+                module_bundle=NULL;
+            } else {
+                if(CPHTRUE != cphBundleGetBundle(&module_bundle, pConfig, module)) module_bundle=NULL;
+            }
+        }
+        if(module_bundle != NULL){
+            cphLogPrintLn(pConfig->pLog, LOG_INFO, cphConfigDescribeModule(pConfig, module_bundle, CPHTRUE) );
+        }
+        break;
+      default:
         break;
     } /* end switch */
 
@@ -732,7 +734,7 @@ char *cphConfigDescribe(CPH_CONFIG *pConfig, int inFull) {
 /* NB: It would be nice to have CPH_BUNDLE* here and not void * for the bundle pointer */
 char *cphConfigDescribeModule(CPH_CONFIG *pConfig, void *ptr, int inFull) {
     CPH_STRINGBUFFER *pSb;
-	CPH_BUNDLE *pBundle;
+    CPH_BUNDLE *pBundle;
     char *resString;
 
     CPHTRACEENTRY(pConfig->pTrc)
@@ -901,10 +903,10 @@ int cphConfigRegisterBaseModules(CPH_CONFIG *pConfig) {
 
     if ( (CPHTRUE != cphConfigRegisterModule(pConfig, "Config")) ||
          (CPHTRUE != cphConfigRegisterModule(pConfig, "Log")) ||
-	     (CPHTRUE != cphConfigRegisterModule(pConfig, "ControlThread")) ||
-		 (CPHTRUE != cphConfigRegisterModule(pConfig, "WorkerThread")) ||
+         (CPHTRUE != cphConfigRegisterModule(pConfig, "ControlThread")) ||
+         (CPHTRUE != cphConfigRegisterModule(pConfig, "WorkerThread")) ||
          (CPHTRUE != cphConfigRegisterModule(pConfig, "DestinationFactory")) ||
-	     (CPHTRUE != cphConfigRegisterModule(pConfig, "MQOpts"))  /*MQIWorkerThread*/
+         (CPHTRUE != cphConfigRegisterModule(pConfig, "MQOpts"))  /*MQIWorkerThread*/
        ) {
         status = CPHFALSE;
     }
@@ -927,7 +929,7 @@ int cphConfigRegisterBaseModules(CPH_CONFIG *pConfig) {
 int cphConfigRegisterWorkerThreadModule(CPH_CONFIG *pConfig) {
 
     int status = CPHTRUE;
-	char module[80] = {'\0'};
+    char module[80] = {'\0'};
 
     CPHTRACEENTRY(pConfig->pTrc)
 
@@ -1082,9 +1084,9 @@ int cphConfigFreeBundles(CPH_CONFIG *pConfig) {
         do {
             CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);
             if(NULL != pItem){
-				CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;
+                CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;
                 cphBundleFree(&pBundle);
-		    }
+            }
         } while (cphListIteratorHasNext(pIterator));
         cphListIteratorFree(&pIterator);
     }

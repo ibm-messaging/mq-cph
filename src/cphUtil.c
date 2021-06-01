@@ -181,9 +181,9 @@ long cphUtilGetUsTimeDifference(CPH_TIME time1, CPH_TIME time2) {
    return (long) ((time1.tv_sec-time2.tv_sec)*1000000 + (time1.tv_usec-time2.tv_usec));
 #elif defined(CPH_UNIX)
    if(time1.tv_nsec > time2.tv_nsec){
-	return (long) ((time1.tv_sec - time2.tv_sec) * 1000000 - (time2.tv_nsec - time1.tv_nsec)/1000);
+     return (long) ((time1.tv_sec - time2.tv_sec) * 1000000 - (time2.tv_nsec - time1.tv_nsec)/1000);
 } else {
-	return (long) ((time1.tv_sec - time2.tv_sec) * 1000000 + (time1.tv_nsec - time2.tv_nsec)/1000);
+  return (long) ((time1.tv_sec - time2.tv_sec) * 1000000 + (time1.tv_nsec - time2.tv_nsec)/1000);
 }
 #endif
 
@@ -620,7 +620,6 @@ char *cphUtilMakeBigStringWithRFH2(int size, size_t *pRfh2Len) {
 
   assert(size >= 0);
 
-#define OLD_RFH2_NAME_VALUE_DATA_LENGTH 76
 #define RFH2_NAME_VALUE_DATA_LENGTH_1 32
 #define RFH2_NAME_VALUE_DATA_LENGTH_2 144
 

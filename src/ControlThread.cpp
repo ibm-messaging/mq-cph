@@ -202,7 +202,7 @@ protected:
         ss2 << buff;
 
         if(collectLatencyStats){
-          sprintf(buff,",avg_latency(%lcs)=%ld,max_latency(%lcs)=%ld,min_latency(%lcs)=%ld",L'\u00b5',latencyStats[0],L'\u00b5',latencyStats[1],L'\u00b5',latencyStats[2]);
+          sprintf(buff,",avg_latency(uSec)=%ld,max_latency(uSec)=%ld,min_latency(uSec)=%ld",latencyStats[0],latencyStats[1],latencyStats[2]);
           ss2 << buff;
         }
         cphLogPrintLn(pLog, LOG_INFO, ss2.str().data());
@@ -502,10 +502,10 @@ void ControlThread::run() {
     
     if(pStatsThread != NULL && collectLatencyStats){
       sprintf(tempStr,
-         "avg_latency(%lcs)=%ld,max_latency(%lcs)=%ld,min_latency(%lcs)=%ld",
-         L'\u00b5',pStatsThread->avgLatency,
-         L'\u00b5',pStatsThread->maxLatency,
-         L'\u00b5',pStatsThread->minLatency);
+         "avg_latency(uSec)=%ld,max_latency(uSec)=%ld,min_latency(uSec)=%ld",
+         pStatsThread->avgLatency,
+         pStatsThread->maxLatency,
+         pStatsThread->minLatency);
       cphLogPrintLn(pLog, LOG_WARNING, tempStr);
     }
     
