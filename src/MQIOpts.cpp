@@ -124,24 +124,22 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
       configError(pConfig, "(pw) Default password cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Password: %s", password)
 
-	//Use ccdt
-	if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, "ccdt"))
-		configError(pConfig, "(ccdt) Cannot retrieve CCDT URL default.");
+	  //Use ccdt
+	  if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, "ccdt"))
+	    configError(pConfig, "(ccdt) Cannot retrieve CCDT URL default.");
     if (strcmp(ccdtURL, "") != 0) {
-        useChannelTable = true;
-       }
-    else useChannelTable = false;
-	CPHTRACEMSG(pTrc, "CCDT URL: %s", ccdtURL)
+      useChannelTable = true;
+    } else {
+      useChannelTable = false;
+    }
+	  CPHTRACEMSG(pTrc, "CCDT URL: %s", ccdtURL)
 
- 	//Automatic Reconnection
-  if (CPHTRUE != cphConfigGetString(pConfig, autoReconnect, "ar"))
-		configError(pConfig, "(ar) Cannot retrieve automatic reconnection option.");
-	CPHTRACEMSG(pTrc, "Automatic re-connect: %s", autoReconnect)
+ 	  //Automatic Reconnection
+    if (CPHTRUE != cphConfigGetString(pConfig, autoReconnect, "ar"))
+		  configError(pConfig, "(ar) Cannot retrieve automatic reconnection option.");
+	  CPHTRACEMSG(pTrc, "Automatic re-connect: %s", autoReconnect)
 	
-  if(strcmp(autoReconnect,"") != 0 && strcmp(autoReconnect,"MQCNO_RECONNECT_DISABLED") != 0 && strcmp(ccdtURL,"") == 0){
-		configError(pConfig, string("(ar) -ccdt must be set if using reconnect option specified : ") + autoReconnect);
-	}
-	
+
     //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
     if (strcmp(cipherSpec,"") != 0) {
       //CSP is only used for password authentication
@@ -176,7 +174,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
         //Username/password authentication requires MQCNO_VERSION 5
         protoCNO.Version = MQCNO_VERSION_5;
 
-		csp = protoCSP;
+		    csp = protoCSP;
         protoCNO.SecurityParmsPtr = &csp;
     }
 
@@ -196,7 +194,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
        CPHTRACEMSG(pTrc, "Setting SHARECNV value to %d.", protoCD.SharingConversations)
 
        /*Set the max messagelength on the clientconn channel to the maximum permissable */
-	   protoCD.MaxMsgLength = 104857600;
+	     protoCD.MaxMsgLength = 104857600;
        CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
 	
 
@@ -211,12 +209,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
          //Were only currently setting values in the MQCD, so might not need to bother setting the MQCSP and MQSCO into the MQCNO
          //protoCNO.SSLConfigPtr = &protoSCO;
        }
-	   cd = protoCD;
-	   protoCNO.ClientConnPtr = &cd;
-    } else {
- 	   protoCNO.Version = MQCNO_VERSION_6;
+	     cd = protoCD;
+	     protoCNO.ClientConnPtr = &cd;
+     } else {
+ 	     protoCNO.Version = MQCNO_VERSION_6;
        protoCNO.CCDTUrlPtr = ccdtURL;
-	   protoCNO.CCDTUrlLength = (MQLONG)strlen(ccdtURL);
+	     protoCNO.CCDTUrlLength = (MQLONG)strlen(ccdtURL);
     }
   } else if(connType==FASTPATH) {
     CPHTRACEMSG(pTrc, "Setting fastpath option")
