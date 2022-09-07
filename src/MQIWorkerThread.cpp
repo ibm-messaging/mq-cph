@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2021">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,10 +187,10 @@ static inline uint32_t getCorrelIdBase(CPH_TRACE * pTrc){
  *  > For compatibility with older test configurations, if no 'id' is provided,
  *    then we generate a single random id for the process, and append the WorkerThread name.
  */
-void MQIWorkerThread::generateCorrelID(MQBYTE24 & id, char const * const procId){
+void MQIWorkerThread::generateCorrelID(MQBYTE24 & correlId, char const * const procId){
   CPHTRACEENTRY(pConfig->pTrc)
 
-  memset(id, 0, sizeof(MQBYTE24));
+  memset(correlId, 0, sizeof(MQBYTE24));
   char localproc[80];
   char procPart[24];
   size_t procIdLen = strlen(procId);
@@ -199,9 +199,9 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & id, char const * const procId)
   if (procIdLen == 0){
     static uint32_t correlIdBase = getCorrelIdBase(pConfig->pTrc);
     if (name.length() > 14) {
-       snprintf((char*)id, 24, "%x-%s", correlIdBase, name.substr(name.length() - 15, 14).data());
+       snprintf((char*)correlId, 24, "%x-%s", correlIdBase, name.substr(name.length() - 15, 14).data());
 	} else {
-        snprintf((char*)id, 24, "%x-%s", correlIdBase, name.data());
+        snprintf((char*)correlId, 24, "%x-%s", correlIdBase, name.data());
 	}
   }
   else {
@@ -218,12 +218,12 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & id, char const * const procId)
 	if (procIdLen > remaining) {
 	  strncpy(procPart, &localproc[procIdLen - remaining], remaining);
 	  procPart[remaining] = '\0';
-	  sprintf((char*)id, "%s-%s", procPart, threadPart);
+	  sprintf((char*)correlId, "%s-%s", procPart, threadPart);
 	} else {
-      sprintf((char*)id, "%s-%s", procId, threadPart);
+      sprintf((char*)correlId, "%s-%s", procId, threadPart);
 	}
   }
-  CPHTRACEMSG(pConfig->pTrc, "CorrelID: %s", (char*)id)
+  CPHTRACEMSG(pConfig->pTrc, "CorrelID: %s", (char*)correlId)
   CPHTRACEEXIT(pConfig->pTrc)
 }
 

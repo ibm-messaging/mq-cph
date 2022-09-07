@@ -68,10 +68,6 @@ ifeq ($(OSTYPE),AIX)
 include aix.mk
 endif
 
-ifeq ($(OSTYPE),SunOS)
-include solaris.mk
-endif
-
 # Program to build
 CPH = cph$(EXE)
 INSTALL = install
@@ -146,7 +142,7 @@ else
 # There's a Tab at the beginning of the line 2 lines below:
 #     This is important - DO NOT DELETE
 %/install: %/$(CPH)
-	
+
 endif
 
 # Rule to link executable from object files

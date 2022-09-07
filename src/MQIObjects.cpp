@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2021">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -648,14 +648,14 @@ MQISubscription::~MQISubscription() {
   CPHTRACEEXIT(pConn->pTrc)
 }
 
-void MQISubscription::setDurable(bool unsubscribeOnClose, char const * const subNameFormat, ...){
+void MQISubscription::setDurable(bool unsubscribeOnCloseRequired, char const * const subNameFormat, ...){
   CPHTRACEENTRY(pConn->pTrc)
   checkNotOpen();
   sd.Options &= ~MQSO_NON_DURABLE;
   sd.Options |= MQSO_DURABLE | MQSO_RESUME;
   sd.SubName.VSLength = MQVS_NULL_TERMINATED;
 
-  this->unsubscribeOnClose = unsubscribeOnClose;
+  this->unsubscribeOnClose = unsubscribeOnCloseRequired;
   VSPRINTF_VAR("subscription name", sd.SubName.VSPtr, sd.SubName.VSBufSize, subNameFormat)
 
   CPHTRACEEXIT(pConn->pTrc)
@@ -668,7 +668,7 @@ VS_GET_SET_NAME(MQISubscription, SubName, "subscription name", sd.SubName)
 void MQISubscription::open(bool log) {
   CPHTRACEENTRY(pConn->pTrc)
   if(log){
-    snprintf(pConn->msg, CPH_MQC_MSG_LEN, "[%s] Subscribng to topic string: %s", pConn->name, getTopicString());
+    snprintf(pConn->msg, CPH_MQC_MSG_LEN, "[%s] Subscribing to topic string: %s", pConn->name, getTopicString());
     cphLogPrintLn(pConn->pLog, LOG_VERBOSE, pConn->msg);
   }
   CPHCALLMQ(pConn->pTrc, MQSUB, pConn->hConn, &sd, &hObj, &hSub)

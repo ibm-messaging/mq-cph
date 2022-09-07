@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,6 @@
   #define FUNCTION_NAME __FUNCTION__
 #elif defined(__GNUC__)
   #define FUNCTION_NAME __PRETTY_FUNCTION__
-#elif defined(SUNPRO)
-  #define FUNCTION_NAME "UNKNOWN"
 #else
   #define FUNCTION_NAME __func__
 #endif

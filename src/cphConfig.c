@@ -52,6 +52,7 @@
 void cphConfigIni(CPH_CONFIG **ppConfig, CPH_TRACE *pTrc) {
     CPH_CONFIG *pConfig;
     CPHTRACEENTRY(pTrc)
+
     pConfig = (CPH_CONFIG*) malloc(sizeof(CPH_CONFIG));
     if (NULL != pConfig) {
         pConfig->pTrc = pTrc;

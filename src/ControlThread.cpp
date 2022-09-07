@@ -551,8 +551,8 @@ unsigned int ControlThread::getThreadStats(std::vector<unsigned int> &stats) con
 *  TODO: Generalise this to be more in line with getThreadStats, populating a vector of arrays
 *  for all threads (array empty where latency stats are not enabled?) and returning a count of runningWorkers
 */
-void ControlThread::getThreadLatencyStats(long latencyStats[], int threadId) const {
-     workers[threadId]->getLatencyStats(latencyStats);
+void ControlThread::getThreadLatencyStats(long latencyStats[], int tid) const {
+     workers[tid]->getLatencyStats(latencyStats);
 }
 
 /*

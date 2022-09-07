@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2021">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ public:
   virtual char const * getSubName() const;
   virtual void setSubName(char const * const format, ...);
 
-  virtual void setDurable(bool unsubscribeOnClose, char const * const subNameFormat, ...);
+  virtual void setDurable(bool unsubscribeOnCloseRequired, char const * const subNameFormat, ...);
 };
 
 /*

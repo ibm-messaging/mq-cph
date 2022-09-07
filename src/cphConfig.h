@@ -62,7 +62,7 @@ typedef struct _cphconfig {
 
 void cphConfigIni(CPH_CONFIG **ppConfig, CPH_TRACE *pTrc);
 void cphConfigFree(CPH_CONFIG **ppConfig);
-int  cphConfigFreeBundles(CPH_CONFIG *pConfig);
+int cphConfigFreeBundles(CPH_CONFIG *pConfig);
 void cphConfigReadCommandLine(CPH_CONFIG *pConfig, int argc, char *argv[]);
 void cphConfigInvalidParameter(CPH_CONFIG *pConfig, char* error);
 int  cphConfigGetInt(CPH_CONFIG *pConfig, int *res, char const * const in);
@@ -70,7 +70,7 @@ int  cphConfigGetFloat(CPH_CONFIG *pConfig, float *res, char const * const in);
 int  cphConfigGetString(CPH_CONFIG *pConfig, char *res, char const * const in);
 int  cphConfigGetStringPtr(CPH_CONFIG *pConfig, char **res, char const * const in);
 int  cphConfigGetBoolean(CPH_CONFIG *pConfig, int *res, char const * const in);
-int  cphConfigStringToBoolean(int *res, char *aString);
+int cphConfigStringToBoolean(int *res, char *aString);
 
 int cphConfigContainsKey(CPH_CONFIG *pConfig, char *name);
 

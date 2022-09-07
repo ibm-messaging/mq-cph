@@ -54,7 +54,7 @@ public:
   void incRunners();
   void decRunners();
   unsigned int getThreadStats(std::vector<unsigned int> &stats) const;
-  void getThreadLatencyStats(long latencyStats[], int threadId) const;
+  void getThreadLatencyStats(long latencyStats[], int tid) const;
 
 private:
   uint64_t const threadId;

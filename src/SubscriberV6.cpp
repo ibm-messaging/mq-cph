@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2021">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,8 +254,8 @@ void SubscriberV6::buildMQRFHeader(PMQRFH pRFHeader, PMQLONG pDataLength, MQCHAR
 /*********************************************************************/
 
 void SubscriberV6::psCommand(MQCHAR const * const Command, MQLONG regOptions){
-  MQPMO   pmo = { MQPMO_DEFAULT };
-  MQMD    md  = { MQMD_DEFAULT };
+  MQPMO   localPMO = { MQPMO_DEFAULT };
+  MQMD    md       = { MQMD_DEFAULT };
 
   CPHTRACEENTRY(pConfig->pTrc)
 
@@ -284,7 +284,7 @@ void SubscriberV6::psCommand(MQCHAR const * const Command, MQLONG regOptions){
   /* used as the identity of the subscriber.                       */
   /*****************************************************************/
   memcpy(md.ReplyToQ, CPH_SUBSCRIBERV6_SUBSCRIBER_QUEUE, strlen(CPH_SUBSCRIBERV6_SUBSCRIBER_QUEUE) + 1);
-  pmo.Options |= MQPMO_NEW_MSG_ID;
+  localPMO.Options |= MQPMO_NEW_MSG_ID;
   /*****************************************************************/
   /* All commands sent use the correlId as part of their identity. */
   /*****************************************************************/
@@ -293,7 +293,7 @@ void SubscriberV6::psCommand(MQCHAR const * const Command, MQLONG regOptions){
   /*****************************************************************/
   /* Put the command message to the broker control queue.          */
   /*****************************************************************/
-  pControlQueue->put(pMessage, md, pmo);
+  pControlQueue->put(pMessage, md, localPMO);
 
   /***************************************************************/
   /* The put was successful, now wait for a response from the    */
@@ -329,7 +329,7 @@ void SubscriberV6::psCommand(MQCHAR const * const Command, MQLONG regOptions){
 /*                                                                   */
 /*********************************************************************/
 void SubscriberV6::checkForResponse(PMQMD pMd, MQIMessage * pMessage){
-  MQGMO    gmo = { MQGMO_DEFAULT };
+  MQGMO    localGMO = { MQGMO_DEFAULT };
   PMQRFH   pMQRFHeader;
   PMQCHAR  pNameValueString;
 
@@ -341,14 +341,14 @@ void SubscriberV6::checkForResponse(PMQMD pMd, MQIMessage * pMessage){
   /* the original message was sent with (returned in the md from the */
   /* MQPUT) so match against this.                                   */
   /*******************************************************************/
-  gmo.Options = MQGMO_WAIT + MQGMO_CONVERT;
-  gmo.WaitInterval = CPH_SUBSCRIBERV6_MAX_RESPONSE_TIME;
-  gmo.Version = MQGMO_VERSION_2;
-  gmo.MatchOptions = MQMO_MATCH_CORREL_ID;
+  localGMO.Options = MQGMO_WAIT + MQGMO_CONVERT;
+  localGMO.WaitInterval = CPH_SUBSCRIBERV6_MAX_RESPONSE_TIME;
+  localGMO.Version = MQGMO_VERSION_2;
+  localGMO.MatchOptions = MQMO_MATCH_CORREL_ID;
   memcpy( pMd->CorrelId, pMd->MsgId, sizeof(MQBYTE24));
   memset( pMd->MsgId, '\0', sizeof(MQBYTE24));
 
-  pSubscriberQueue->get(pMessage, *pMd, gmo);
+  pSubscriberQueue->get(pMessage, *pMd, localGMO);
 
   /*****************************************************************/
   /* Check that the message is in the MQRFH format.                */

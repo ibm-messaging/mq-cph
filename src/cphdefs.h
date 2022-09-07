@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2017">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2017 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,6 @@
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-#if defined(__SUNPRO_C) || defined(__SUNPRO_CC)
-#define SUNPRO
-#endif
-
 // Define a macro to suppress "unused-variable" warnings in variable declarations.
 #ifdef _MSC_VER
 #pragma warning (disable: 6031)
@@ -81,7 +77,7 @@ namespace cph {
  * files and namespaces of particular classes differ (particularly TR1 classes).
  */
 
-#if __SUNPRO_C >= 0x5130 || defined(_MSC_VER) || defined(__APPLE__) || (defined(GCC_VERSION) && GCC_VERSION >= 40400 && (__cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)))
+#if defined(_MSC_VER) || defined(__APPLE__) || (defined(GCC_VERSION) && GCC_VERSION >= 40400 && (__cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)))
   //#warning Enabling use of c++11 language features.
   #define ISUPPORT_CPP11
   #define tr1_inc(H) <H>

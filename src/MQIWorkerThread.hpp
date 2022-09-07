@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2021">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2021 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ protected:
   /*Get message options.*/
   MQGMO gmo;
 
-  void generateCorrelID(MQBYTE24 & id, char const * const procId);
+  void generateCorrelID(MQBYTE24 & correlId, char const * const procId);
 
   virtual void openSession();
   virtual void closeSession();

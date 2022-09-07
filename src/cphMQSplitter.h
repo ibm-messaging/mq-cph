@@ -189,10 +189,6 @@ typedef void (MQENTRY *MQDLTMHPTR) (
   #define MQLOCAL_NAME "libmqm_r.a(libmqm_r.o)"  /* installation specific client dll */
   #define MQREMOTE_NAME "libmqic_r.a(mqic_r.o)"
   #define MQREMOTE_NAME_IS "libmqdc_r.a(mqdc_r.o)"
-#elif defined(CPH_SOLARIS)
-  #define MQLOCAL_NAME "libmqm.so"
-  #define MQREMOTE_NAME "libmqic.so"
-  #define MQREMOTE_NAME_IS "libmqdc.so"
 #elif defined(CPH_IBMI)
   #define MQLOCAL_NAME "LIBMQM_R  "
   #define MQREMOTE_NAME "LIBMQIC_R "
