@@ -79,8 +79,8 @@ public:
   unsigned int portNumber;          //Port to connect to machine on
   char cipherSpec[MQ_SSL_CIPHER_SPEC_LENGTH]; //Name of cipherSpec
   MQCHAR certLabel[MQ_CERT_LABEL_LENGTH + 1]; //Name of cert label
-  MQCHAR username[MQ_USER_ID_LENGTH + 1];
-  MQCHAR password[MQ_CSP_PASSWORD_LENGTH + 1];
+  MQCHAR * username;
+  MQCHAR * password;
   char autoReconnect[40];
   MQCHAR28 applName;
   bool useChannelTable;

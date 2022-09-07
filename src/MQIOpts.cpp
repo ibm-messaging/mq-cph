@@ -115,12 +115,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     CPHTRACEMSG(pTrc, "Certificate Label: %s", certLabel)
 
     //Username
-    if (CPHTRUE != cphConfigGetString(pConfig, username, "us"))
+    if (CPHTRUE != cphConfigGetStringPtr(pConfig, &username, "us"))
       configError(pConfig, "(us) Default username cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Username: %s", username)
 
     //Password
-    if (CPHTRUE != cphConfigGetString(pConfig, password, "pw"))
+    if (CPHTRUE != cphConfigGetStringPtr(pConfig, &password, "pw"))
       configError(pConfig, "(pw) Default password cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Password: %s", password)
 
@@ -161,11 +161,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	
     // Setup userid and password if they have been defined
     if (strcmp(username,"") != 0) {
-        protoCSP.CSPUserIdPtr = &username;
+        protoCSP.CSPUserIdPtr = username;
         protoCSP.CSPUserIdLength = (MQLONG) strlen(username);
 
         if (strcmp(password,"") != 0) {
-        	protoCSP.CSPPasswordPtr = &password;
+        	protoCSP.CSPPasswordPtr = password;
         	protoCSP.CSPPasswordLength = (MQLONG) strlen(password);
         }
 

@@ -40,6 +40,7 @@ typedef struct _cphnameval {
 
 int cphNameValAdd(CPH_NAMEVAL **ppList, char const * const name, char const * const value);
 int cphNameValGet(CPH_NAMEVAL *pList, char const * const name, char *value);
+int cphNameValPtrGet(CPH_NAMEVAL *list, char const * const name, char **valuePtr);
 int cphNameValFree(CPH_NAMEVAL **ppList);
 int cphNameValNext(CPH_NAMEVAL **ppList);
 

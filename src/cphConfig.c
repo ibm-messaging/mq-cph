@@ -52,7 +52,6 @@
 void cphConfigIni(CPH_CONFIG **ppConfig, CPH_TRACE *pTrc) {
     CPH_CONFIG *pConfig;
     CPHTRACEENTRY(pTrc)
-
     pConfig = (CPH_CONFIG*) malloc(sizeof(CPH_CONFIG));
     if (NULL != pConfig) {
         pConfig->pTrc = pTrc;
@@ -280,6 +279,54 @@ int cphConfigGetString(CPH_CONFIG *pConfig, char *res, char const * const in) {
     return(status);
 }
 
+/*
+** Method: cphConfigGetStringPtr
+**
+** Look up a given configuration option and return the result as a pointer to the string. The list of command line
+** options are scanned first and if the option was not found there, the list of default options is
+** scanned.
+**
+** This is useful to avoid creating buffers in the caller and populating them here (with the risk of buffer overruns).
+**
+** Input Parameters: pConfig - a pointer to the configuration control block
+**                   in - the option name to search for (character string)
+**
+** Output parameters: res - if found in the list, the pointer to the value of the configuration option.
+**
+** Returns: CPHTRUE on successful exection, CPHFALSE if the name was not found in the options
+**          or on other error
+**
+*/
+int cphConfigGetStringPtr(CPH_CONFIG *pConfig, char **res, char const * const in) {
+
+    int status=CPHFALSE;
+    static char null_string[]="";
+
+    CPHTRACEENTRY(pConfig->pTrc)
+
+    if (CPHTRUE == cphNameValPtrGet(pConfig->options, in, res)) {
+        status = CPHTRUE;
+    } else {
+        if (CPHTRUE == cphNameValPtrGet(pConfig->defaultOptions, in, res))
+           status = CPHTRUE;        
+    }
+
+    if (CPHTRUE == status) {
+        if (0 == strcmp(*res, "UNSPECIFIED")) { 
+           *res = null_string;
+        }
+    } else {
+       char errorString[512];
+       strcpy(errorString, "Unknown argument [");
+       strcat(errorString, in);
+       strcat(errorString, "]");
+       cphConfigInvalidParameter(pConfig, errorString);
+    }
+    
+    CPHTRACEEXIT(pConfig->pTrc)
+
+    return(status);
+}
 /*
 ** Method: cphConfigGetBoolean
 **

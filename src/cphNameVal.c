@@ -107,6 +107,40 @@ int cphNameValGet(CPH_NAMEVAL *list, char const * const name, char *value) {
 }
 
 /*
+** Method: cphNameValPtrGet
+**
+** Given a name, this function returns a pointer to the value associated with that name from a
+** CPH_NAMEVAL linked list of configuration options
+**
+** Input Parameters: list - pointer to the CPH_NAMEVAL linked list
+**                   name - the name of the configuration option to search for (character string)
+**
+** Output Parameters: value - the pointer to the matching value from the list (character string)
+
+** Returns: CPHTRUE on successful exection, CPHFALSE if the option does not exist in the list or
+**          on other error
+**
+*/
+int cphNameValPtrGet(CPH_NAMEVAL *list, char const * const name, char **valuePtr) {
+    CPH_NAMEVAL *nv;
+    if (list != NULL) {
+        nv = list;
+        while (1)
+        {
+            if (0 == strcmp(nv->name, name))
+            {
+                *valuePtr = (char *)(&nv->value);
+                return CPHTRUE;
+            }
+            if (NULL == nv->next) break;
+            nv = nv->next;
+        }
+    }
+    *valuePtr = NULL;
+    return CPHFALSE;
+}
+
+/*
 ** Method: cphNameValFree
 **
 ** Free all the entries in a CPH_NAMEVAL linked list
