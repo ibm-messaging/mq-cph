@@ -222,13 +222,18 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   }
 
   //ApplName (APPLTAG)
+  //This requires a V7 MQCNO (shipped in MQV9.1.2)
   if (CPHTRUE != cphConfigGetString(pConfig, applName, "an"))
 		configError(pConfig, "(an) Cannot retrieve applName option.");
 	CPHTRACEMSG(pTrc, "applName: %s", applName)
 
   if(strcmp(applName,"") != 0) {
+  #if MQCNO_CURRENT_VERSION < 7
+    configError(pConfig, "(an) applName not supported by this build of cph. Please re-compile cph against MQ client libraries from MQ 9.1.2 or higher.");
+  #else
     protoCNO.Version = MQCNO_VERSION_7;
     strcpy(protoCNO.ApplName,applName);
+  #endif
   }
   
   if(strcmp(autoReconnect,"") != 0){
