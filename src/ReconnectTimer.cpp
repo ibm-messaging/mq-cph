@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ MQWTCONSTRUCTOR(ReconnectTimer, true, true, true) {
 
     //Use generic selector? (not selecting on correlId)
     if (useSelector){
-      int temp = cphConfigGetString(pConfig, (char *)&customSelector, "gs") == CPHTRUE;
+      int temp = cphConfigGetString(pConfig, (char *)&customSelector, sizeof(customSelector), "gs") == CPHTRUE;
       useCustomSelector = (temp && (0 != strcmp(customSelector, "")) ? true : false);
       if (!useCustomSelector)
         configError(pConfig, "(gs) Cannot determine whether to use generic selector.");
@@ -79,7 +79,7 @@ MQWTCONSTRUCTOR(ReconnectTimer, true, true, true) {
     }
 	
 	//Secondary Host name
-	if (CPHTRUE != cphConfigGetString(pConfig, secondaryHostName, "h2"))
+	if (CPHTRUE != cphConfigGetString(pConfig, secondaryHostName, sizeof(secondaryHostName), "h2"))
 	  configError(pConfig, "(h2) Default secondary host name cannot be retrieved.");
 	CPHTRACEMSG(pConfig->pTrc, "Default secondary host name: %s", secondaryHostName)
 		

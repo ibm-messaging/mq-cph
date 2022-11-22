@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2021">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2021 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -308,12 +308,12 @@ void ControlThread::run() {
 
   try {
 
-    if(CPHTRUE != cphConfigGetString(pConfig, tempStr, "tc"))
+    if(CPHTRUE != cphConfigGetString(pConfig, tempStr, sizeof(tempStr), "tc"))
       configError(pConfig, "(tc) Could not determine worker thread type class.");
     cph::WorkerThread::setImplementation(pConfig->pTrc, std::string(tempStr));
 
     /* Get the set duration option */
-    if (CPHTRUE != cphConfigGetString(pConfig, tempStr, "sd")) exit(1);
+    if (CPHTRUE != cphConfigGetString(pConfig, tempStr, sizeof(tempStr), "sd")) exit(1);
     if (0 == strcmp(tempStr, "normal"))
       reportTlf = false;
     else if (0 == strcmp(tempStr, "tlf"))
@@ -338,7 +338,7 @@ void ControlThread::run() {
     doFinalSummary = temp==CPHTRUE;
     CPHTRACEMSG(pTrc, "Display final summary: %s.", doFinalSummary ? "yes" : "no")
 
-    if (CPHTRUE != cphConfigGetString(pConfig, procId, "id"))
+    if (CPHTRUE != cphConfigGetString(pConfig, procId, sizeof(procId), "id"))
       configError(pConfig, "(id) Could not determine process identifier.");
     CPHTRACEMSG(pTrc, "Process Id: %s.", procId)
 

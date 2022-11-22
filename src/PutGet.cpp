@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ MQWTCONSTRUCTOR(PutGet, true, true, false) {
 	//Use generic selector? (not selecting on correlId)
 	temp = 0;
     if (useSelector){
-      temp = cphConfigGetString(pConfig, (char *)&customSelector, "gs") == CPHTRUE;
+      temp = cphConfigGetString(pConfig, (char *)&customSelector, sizeof(customSelector), "gs") == CPHTRUE;
       useCustomSelector = (temp && (0 != strcmp(customSelector, "")) ? true : false);
       if (!useCustomSelector)
         configError(pConfig, "(gs) Cannot determine whether to use generic selector.");

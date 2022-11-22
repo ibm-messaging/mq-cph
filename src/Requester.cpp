@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,19 +70,19 @@ MQWTCONSTRUCTOR(Requester, true, true, false) {
 
     //Use generic selector? (not selecting on correlId)
     if (useSelector){
-      if (CPHTRUE != cphConfigGetString(pConfig, (char *) &customSelector, "gs"))
+      if (CPHTRUE != cphConfigGetString(pConfig, (char *) &customSelector, sizeof(customSelector), "gs"))
         configError(pConfig, "(gs) Cannot determine whether to use generic selector.");
       useCustomSelector = (0 != strcmp(customSelector, "") ? true : false);
       CPHTRACEMSG(pConfig->pTrc, "Use generic selector: %s", useCustomSelector ? "yes" : "no")
     }
 
     // Input (request) queue.
-    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, "iq"))
+    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, sizeof(iqPrefix), "iq"))
       configError(pConfig, "(iq) Cannot determine input (request) queue prefix.");
     CPHTRACEMSG(pConfig->pTrc, "Input (request) queue prefix: %s", iqPrefix)
 
     // Output (reply) queue.
-    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &oqPrefix, "oq"))
+    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &oqPrefix, sizeof(oqPrefix), "oq"))
       configError(pConfig, "(oq) Cannot determine output (reply) queue prefix.");
     CPHTRACEMSG(pConfig->pTrc, "Output (reply) queue prefix: %s", oqPrefix)
 

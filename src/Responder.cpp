@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,7 +167,7 @@ MQWTCONSTRUCTOR(Responder, true, true, false), pInQueue(NULL),
     CPHTRACEMSG(pConfig->pTrc, "Copy request: %s", copyRequest ? "yes" : "no")
 
     // Input (request) queue.
-    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, "iq")){
+    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, sizeof(iqPrefix), "iq")){
       cphLogPrintLn(pConfig->pLog, LOG_INFO,
           "No input (request) queue prefix parameter (-iq) detected. Falling back on destination prefix (-d).");
       strncpy(iqPrefix, pOpts->destinationPrefix, MQ_Q_NAME_LENGTH);

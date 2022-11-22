@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
    */
 
   //QM Name
-  if (CPHTRUE != cphConfigGetString(pConfig, QMName, "jb"))
+  if (CPHTRUE != cphConfigGetString(pConfig, QMName, sizeof(QMName), "jb"))
     configError(pConfig, "(jb) Cannot retrieve Queue Manager name.");
   CPHTRACEMSG(pTrc, "QMName: %s", QMName)
 
   //Connection Type
-  if (CPHTRUE != cphConfigGetString(pConfig, temp, "jt"))
+  if (CPHTRUE != cphConfigGetString(pConfig, temp, sizeof(temp), "jt"))
     configError(pConfig, "(jt) Connection type (client/bindings) cannot be retrieved.");
   CPHTRACEMSG(pTrc, "Connection type: %s", temp)
   if(string(temp)=="mqb"){
@@ -90,12 +90,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 
   if(connType==REMOTE){
     //Channel name
-    if (CPHTRUE != cphConfigGetString(pConfig, channelName, "jc"))
+    if (CPHTRUE != cphConfigGetString(pConfig, channelName, sizeof(channelName), "jc"))
       configError(pConfig, "(jc) Default channel name cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Default channel name: %s", channelName)
 
     //Host name
-    if (CPHTRUE != cphConfigGetString(pConfig, hostName, "jh"))
+    if (CPHTRUE != cphConfigGetString(pConfig, hostName, sizeof(hostName), "jh"))
       configError(pConfig, "(jh) Default host name cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Default host name: %s", hostName)
 
@@ -105,12 +105,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     CPHTRACEMSG(pTrc, "Default port number: %d", portNumber)
 
     //SSL Cipher
-    if (CPHTRUE != cphConfigGetString(pConfig, cipherSpec, "jl"))
+    if (CPHTRUE != cphConfigGetString(pConfig, cipherSpec, sizeof(cipherSpec), "jl"))
       configError(pConfig, "(jl) Default CipherSpec cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Cipher Spec: %s", cipherSpec)
 
     //TLS Cert Label
-    if (CPHTRUE != cphConfigGetString(pConfig, certLabel, "jw"))
+    if (CPHTRUE != cphConfigGetString(pConfig, certLabel, sizeof(certLabel), "jw"))
       configError(pConfig, "(jw) Certificate label cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Certificate Label: %s", certLabel)
 
@@ -125,7 +125,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     CPHTRACEMSG(pTrc, "Password: %s", password)
 
 	  //Use ccdt
-	  if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, "ccdt"))
+	  if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, sizeof(ccdtURL), "ccdt"))
 	    configError(pConfig, "(ccdt) Cannot retrieve CCDT URL default.");
     if (strcmp(ccdtURL, "") != 0) {
       useChannelTable = true;
@@ -135,7 +135,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	  CPHTRACEMSG(pTrc, "CCDT URL: %s", ccdtURL)
 
  	  //Automatic Reconnection
-    if (CPHTRUE != cphConfigGetString(pConfig, autoReconnect, "ar"))
+    if (CPHTRUE != cphConfigGetString(pConfig, autoReconnect, sizeof(autoReconnect), "ar"))
 		  configError(pConfig, "(ar) Cannot retrieve automatic reconnection option.");
 	  CPHTRACEMSG(pTrc, "Automatic re-connect: %s", autoReconnect)
 	
@@ -223,7 +223,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 
   //ApplName (APPLTAG)
   //This requires a V7 MQCNO (shipped in MQV9.1.2)
-  if (CPHTRUE != cphConfigGetString(pConfig, applName, "an"))
+  if (CPHTRUE != cphConfigGetString(pConfig, applName, sizeof(applName), "an"))
 		configError(pConfig, "(an) Cannot retrieve applName option.");
 	CPHTRACEMSG(pTrc, "applName: %s", applName)
 
@@ -261,7 +261,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 
   if(putter||getter){
     //Destination prefix
-    if (CPHTRUE != cphConfigGetString(pConfig, destinationPrefix, "d"))
+    if (CPHTRUE != cphConfigGetString(pConfig, destinationPrefix, sizeof(destinationPrefix), "d"))
       configError(pConfig, "(d) Cannot retrieve destination prefix.");
     CPHTRACEMSG(pTrc, "Destination prefix: %s", destinationPrefix)
 
@@ -318,7 +318,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   //txp & txg parms (these are mutually exclusive to the tx parm)
   if(putter && getter){  
 	 char module[80] = {'\0'};
-	 cphConfigGetString(pConfig, module, "tc");
+	 cphConfigGetString(pConfig, module, sizeof(module), "tc");
 	 if(strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0){
     
 	    if(CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txp")){

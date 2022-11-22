@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ typedef struct _cphnameval {
 } CPH_NAMEVAL;
 
 int cphNameValAdd(CPH_NAMEVAL **ppList, char const * const name, char const * const value);
-int cphNameValGet(CPH_NAMEVAL *pList, char const * const name, char *value);
+int cphNameValGet(CPH_NAMEVAL *pList, char const * const name, char *value, size_t buflen);
 int cphNameValPtrGet(CPH_NAMEVAL *list, char const * const name, char **valuePtr);
 int cphNameValFree(CPH_NAMEVAL **ppList);
 int cphNameValNext(CPH_NAMEVAL **ppList);

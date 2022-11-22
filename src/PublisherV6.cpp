@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ MQWTCONSTRUCTOR(PublisherV6, true, false, false),
       configError(pConfig, "(rf) Use of superfluous RFH2 headers not supported in V6 publisher.");
 
 
-    if(CPHTRUE != cphConfigGetString(pConfig, streamQName, "jq"))
+    if(CPHTRUE != cphConfigGetString(pConfig, streamQName, sizeof(streamQName), "jq"))
       configError(pConfig, "(jq) Could not determine the stream queue to use.");
     CPHTRACEMSG(pConfig->pTrc, (char*) "Stream queue: %s", streamQName)
 

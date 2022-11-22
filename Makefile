@@ -139,10 +139,9 @@ $(info Installation directory: $(installdir))
 	$(CP) $(@D)/$(CPH) $(installdir)/$(CPH)
 	$(CP) $(PROPS)/* $(installdir)
 else
-# There's a Tab at the beginning of the line 2 lines below:
-#     This is important - DO NOT DELETE
 %/install: %/$(CPH)
-	
+	@echo "No install dir specified (see mq-cph manual on how to set this)."
+	@echo "cph executable created in $(@D) directory."
 endif
 
 # Rule to link executable from object files

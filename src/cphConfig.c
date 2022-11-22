@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2021">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
- * Copyright (c) 2007,2021 IBM Corp.
+ * Copyright (c) 2007,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,8 +121,9 @@ void cphConfigFree(CPH_CONFIG **ppConfig) {
 void cphConfigReadCommandLine(CPH_CONFIG * pConfig, int argc, char *argv[]) {
     int i = 0;
     char key[80] = { '\0' };
-    char value[80];
+    char value[256];
     char cmdLine[2048];
+    char errorString[512];
 
     CPHTRACEENTRY(pConfig->pTrc)
 
@@ -151,7 +152,13 @@ void cphConfigReadCommandLine(CPH_CONFIG * pConfig, int argc, char *argv[]) {
             strcpy(value, CPHCONFIG_UNSPECIFIED);
         } else {
             if (0 == strcmp(value, CPHCONFIG_UNSPECIFIED)) {
-                strcpy(value, argv[i]);
+                if(strlen(argv[i]) <= sizeof(value)) {
+                    strcpy(value, argv[i]);
+                } else {
+                    sprintf(errorString,"Command line parameter value exceeds maximum length of %zu [-%s %s]",sizeof(value)-1, key, argv[i]);
+                    cphConfigInvalidParameter(pConfig, errorString);
+                    
+                }
             } else {
                 /*this else allows us to have spaces in the key values i.e.
                 the values will span
@@ -249,21 +256,20 @@ int cphConfigContainsKey(CPH_CONFIG *pConfig, char *name) {
 **          or on other error
 **
 */
-int cphConfigGetString(CPH_CONFIG *pConfig, char *res, char const * const in) {
+int cphConfigGetString(CPH_CONFIG *pConfig, char *res, size_t buflen, char const * const in) {
 
     int status=CPHFALSE;
 
     CPHTRACEENTRY(pConfig->pTrc)
 
-    if (CPHTRUE == cphNameValGet(pConfig->options, in, res))
+    if (CPHTRUE == cphNameValGet(pConfig->options, in, res, buflen))
         status = CPHTRUE;
     else {
-        if (CPHTRUE == cphNameValGet(pConfig->defaultOptions, in, res))
+        if (CPHTRUE == cphNameValGet(pConfig->defaultOptions, in, res, buflen))
            status = CPHTRUE;
     }
 
     if (CPHTRUE == status) {
-
        if (0 == strcmp(res, "UNSPECIFIED")) {
            strcpy(res, "");
        }
@@ -351,7 +357,7 @@ int  cphConfigGetBoolean(CPH_CONFIG *pConfig, int *res, char const * const in) {
 
     CPHTRACEENTRY(pConfig->pTrc)
 
-    if (CPHTRUE == cphConfigGetString(pConfig, sVal, in)) {
+    if (CPHTRUE == cphConfigGetString(pConfig, sVal, sizeof(sVal), in)) {
         /* poor checking but allows UNSPECIFIED ("") to return true */
         if (0 == strcmp(sVal, "false"))
             *res = CPHFALSE;
@@ -409,7 +415,7 @@ int cphConfigGetInt(CPH_CONFIG *pConfig, int *res, char const * const name)
 
     CPHTRACEENTRY(pConfig->pTrc)
 
-    if ( (CPHTRUE == cphConfigGetString(pConfig, sVal, name)) &&
+    if ( (CPHTRUE == cphConfigGetString(pConfig, sVal, sizeof(sVal), name)) &&
         (1 == sscanf(sVal, "%d", res)) )
         status = CPHTRUE;
     else {
@@ -450,7 +456,7 @@ int cphConfigGetFloat(CPH_CONFIG *pConfig, float *res, char const * const name)
 
     CPHTRACEENTRY(pConfig->pTrc)
 
-    if ( (CPHTRUE == cphConfigGetString(pConfig, sVal, name)) &&
+    if ( (CPHTRUE == cphConfigGetString(pConfig, sVal, sizeof(sVal), name)) &&
         (1 == sscanf(sVal, "%f", res)) )
         status = CPHTRUE;
     else {
@@ -540,7 +546,7 @@ void cphConfigMarkLoaded(CPH_CONFIG *pConfig) {
         do  {
             char aValue[80];
             /* Look up the next option given on the command line in the list of default options */
-            if (CPHFALSE == cphNameValGet(pConfig->validOptions, setOptions->name, aValue)) {
+            if (CPHFALSE == cphNameValGet(pConfig->validOptions, setOptions->name, aValue, sizeof(aValue))) {
                 char errorString[512];
                 strcpy(errorString, "Parameter [");
                 strcat(errorString, setOptions->name);
@@ -588,7 +594,7 @@ int cphDisplayHelpIfNeeded(CPH_CONFIG *pConfig) {
         if (CPHTRUE != cphConfigGetBoolean(pConfig, &isBool, "hf")) return(CPHFALSE);
         if (CPHTRUE == isBool) i = 3;
         else {
-            if (CPHTRUE != cphConfigGetString(pConfig, module, "hm")) return(CPHFALSE);
+            if (CPHTRUE != cphConfigGetString(pConfig, module, sizeof(module), "hm")) return(CPHFALSE);
             if ( (0 < strlen(module)) && (0 != strcmp(module, "none")) ) i =5;
         }
 
@@ -713,7 +719,7 @@ char *cphConfigGetVersion(CPH_CONFIG *pConfig, char *versionString) {
        CPH_ARRAYLISTITEM *pItem = cphListIteratorNext(pIterator);
        CPH_BUNDLE *pBundle = (CPH_BUNDLE*) pItem->item;
        if (0 == strcmp("Config", pBundle->clazzName)) {
-          cphNameValGet(pBundle->pNameValList, "tool.version", sKeyVal);
+          cphNameValGet(pBundle->pNameValList, "tool.version", sKeyVal, sizeof(sKeyVal));
           break;
        }
 
@@ -848,7 +854,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
             strcpy(sKeyName, pBundle->clazzName);
             strcat(sKeyName, ".desc");
 
-            if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal)) {
+            if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal, sizeof(sKeyVal))) {
 
                cphStringBufferAppend(pSb, cphUtilstrcrlf(sKeyVal));
                cphStringBufferAppend(pSb, "\n\n");
@@ -866,7 +872,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
                hidden = CPHFALSE;
                strcpy(sKeyName, keyBase);
                strcat(sKeyName, ".hide");
-               if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal)) {
+               if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal, sizeof(sKeyVal))) {
                    cphConfigStringToBoolean(&hidden, sKeyVal);
                }
 
@@ -875,7 +881,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
                    strcat(sKeyName, ".desc");
 
                    /* Get the key description */
-                   if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal)) {
+                   if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal, sizeof(sKeyVal))) {
                             cphStringBufferAppend(pSb, "  ");
                             cphStringBufferAppend(pSb, keyBase);
                             cphStringBufferAppend(pSb, "\t");
@@ -884,7 +890,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
                             /* Get the Default value */
                             strcpy(sKeyName, keyBase);
                             strcat(sKeyName, ".dflt");
-                            if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal)) {
+                            if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal, sizeof(sKeyVal))) {
                                 cphStringBufferAppend(pSb, " (default: ");
                                 cphStringBufferAppend(pSb, sKeyVal);
                                 cphStringBufferAppend(pSb, ")");
@@ -895,7 +901,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
                             if (CPHTRUE == inFull) {
                                 strcpy(sKeyName, keyBase);
                                 strcat(sKeyName, ".xtra");
-                                if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal)) {
+                                if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal, sizeof(sKeyVal))) {
 
                                    cphStringBufferAppend(pSb, "\t");
                                    cphStringBufferAppend(pSb, cphUtilstrcrlfTotabcrlf(sKeyVal));
@@ -903,7 +909,7 @@ int cphConfigDescribeModuleAsText(CPH_CONFIG *pConfig, CPH_STRINGBUFFER *pSb, vo
 
                                    strcpy(sKeyName, keyBase);
                                    strcat(sKeyName, ".modules");
-                                   if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal)) {
+                                   if (CPHTRUE == cphNameValGet(pBundle->pNameValList, sKeyName, sKeyVal, sizeof(sKeyVal))) {
                                        if (CPHTRUE == inFull) {
                                            module = strtok(sKeyVal, " ");
                                            while (NULL != module) {
@@ -981,7 +987,7 @@ int cphConfigRegisterWorkerThreadModule(CPH_CONFIG *pConfig) {
 
     CPHTRACEENTRY(pConfig->pTrc)
 
-    if (CPHTRUE != cphConfigGetString(pConfig, module, "tc")) return(CPHFALSE);
+    if (CPHTRUE != cphConfigGetString(pConfig, module, sizeof(module), "tc")) return(CPHFALSE);
 
     if ( (CPHTRUE != cphConfigRegisterModule(pConfig, module))
        ) {
@@ -1061,7 +1067,7 @@ int cphConfigImportResources(CPH_CONFIG *pConfig, void *ptr) {
 
             /* Has this property already been registered? */
             /* NB - we treat this as a fatal error, the original Java gives the message but continues */
-            if (CPHTRUE == cphNameValGet(pConfig->defaultOptions, keyBase, res)) {
+            if (CPHTRUE == cphNameValGet(pConfig->defaultOptions, keyBase, res, sizeof(res))) {
                sprintf(errorString, "Property [%s] exists twice in resource bundles.", keyBase);
                cphConfigInvalidParameter(pConfig, errorString);
                status = CPHFALSE;
@@ -1078,7 +1084,7 @@ int cphConfigImportResources(CPH_CONFIG *pConfig, void *ptr) {
           strcpy(keyBase, bundleNameVal->name);
           keyBase[strlen(bundleNameVal->name) - 5] = '\0';
 
-          if(CPHTRUE != cphNameValGet(pConfig->validOptions, keyBase, res))
+          if(CPHTRUE != cphNameValGet(pConfig->validOptions, keyBase, res, sizeof(res)))
             cphNameValAdd(&pConfig->validOptions, keyBase, bundleNameVal->value);
         }
 

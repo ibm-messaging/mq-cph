@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
 		 //Code to see the results of reconnect attempts for first thread)
 		 //reconnectTime_ms = cphUtilGetTimeDifference(cphUtilGetNow(),reconnectStart);
    	     //if(pOwner->threadNum==0){
-		 //   cphConfigGetString(pOwner->pConfig, procId, "id");
+		 //   cphConfigGetString(pOwner->pConfig, procId, sizeof(procId), "id");
    	     //   printf("[%s][%s]====cc: %i;  rc: %i===== Response time: %ld\n",procId,name,cc,rc,reconnectTime_ms);	
 		 //}
 	  } while(cc != 0);

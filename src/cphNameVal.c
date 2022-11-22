@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2017">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
- * Copyright (c) 2007,2017 IBM Corp.
+ * Copyright (c) 2007,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ int cphNameValAdd(CPH_NAMEVAL **list, char const * const name, char const * cons
 **          on other error
 **
 */
-int cphNameValGet(CPH_NAMEVAL *list, char const * const name, char *value) {
+int cphNameValGet(CPH_NAMEVAL *list, char const * const name, char *value, size_t buflen) {
     CPH_NAMEVAL *nv;
 
     if (list != NULL) {
@@ -95,8 +95,17 @@ int cphNameValGet(CPH_NAMEVAL *list, char const * const name, char *value) {
         {
             if (0 == strcmp(nv->name, name))
             {
-                strcpy(value, nv->value);
-                return CPHTRUE;
+                if(buflen-1 >= strlen(nv->value)) {
+                    strcpy(value, nv->value);
+                    return CPHTRUE;
+                } else {
+                    /*We're pretty low down here - no access to cphLog or cphtrace, but we don't want to push a buffer issue up the stack to be handled either*/
+                    printf("Size limit for parameter %s exceeded.\n",nv->name);
+                    printf("Maximum permitted size: %zu. Size of value passed: %zu\n", buflen-1,strlen(nv->value));
+                    printf("Value passed: %s\n",nv->value);
+                    printf("Exiting....\n");
+                    exit(8);
+                }
             }
             if (NULL == nv->next) break;
             nv = nv->next;

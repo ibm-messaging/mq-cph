@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2018">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
- * Copyright (c) 2007,2018 IBM Corp.
+ * Copyright (c) 2007,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,21 +82,21 @@ void cphDestinationFactoryIni(CPH_DESTINATIONFACTORY **ppDestinationFactory, CPH
     else
         CPHTRACEMSG(pTrc, "Multi-destination numeric range: %d.", destNumber)
 
-    if (CPHTRUE != cphConfigGetString(pConfig, destPrefix, "d")) {
+    if (CPHTRUE != cphConfigGetString(pConfig, destPrefix, sizeof(destPrefix), "d")) {
         cphConfigInvalidParameter(pConfig, "(d) Destination Prefix cannot be retrieved");
         status = CPHFALSE;
     }
     else
         CPHTRACEMSG(pTrc, "Destination prefix: %s.", destPrefix)
 
-  if (CPHTRUE != cphConfigGetString(pConfig, i_queuePrefix, "iq")) {
+  if (CPHTRUE != cphConfigGetString(pConfig, i_queuePrefix, sizeof(i_queuePrefix), "iq")) {
     cphConfigInvalidParameter(pConfig, "(iq) In-Queue cannot be retrieved");
     status = CPHFALSE;
   } else {
     CPHTRACEMSG(pTrc, "Input Queue prefix: %s.", i_queuePrefix)
   }
 
-  if (CPHTRUE != cphConfigGetString(pConfig, o_queuePrefix, "oq")) {
+  if (CPHTRUE != cphConfigGetString(pConfig, o_queuePrefix, sizeof(o_queuePrefix), "oq")) {
     cphConfigInvalidParameter(pConfig, "(oq) Out-Queue cannot be retrieved");
     status = CPHFALSE;
   } else {

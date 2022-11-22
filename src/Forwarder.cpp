@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
- * Copyright (c) 2014,2020 IBM Corp.
+ * Copyright (c) 2014,2022 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ MQWTCONSTRUCTOR(Forwarder, true, true, false), pInQueue(NULL), pOutQueue(NULL) {
     CPHTRACEMSG(pConfig->pTrc, "Copy input message to output: %s", copyMsg ? "yes" : "no")
 
     // Input queue.
-    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, "iq")){
+    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &iqPrefix, sizeof(iqPrefix), "iq")){
       cphLogPrintLn(pConfig->pLog, LOG_INFO,
           "No input queue prefix parameter (-iq) detected. Falling back on destination prefix (-d).");
       strncpy(iqPrefix, pOpts->destinationPrefix, MQ_Q_NAME_LENGTH);
@@ -81,7 +81,7 @@ MQWTCONSTRUCTOR(Forwarder, true, true, false), pInQueue(NULL), pOutQueue(NULL) {
     CPHTRACEMSG(pConfig->pTrc, "Input queue prefix: %s", iqPrefix)
 
     // Output queue.
-    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &oqPrefix, "oq")){
+    if(CPHTRUE != cphConfigGetString(pConfig, (char*) &oqPrefix, sizeof(oqPrefix), "oq")){
       cphLogPrintLn(pConfig->pLog, LOG_INFO,
           "No output queue prefix parameter (-oq) detected. Falling back on destination prefix (-d).");
       strncpy(oqPrefix, pOpts->destinationPrefix, MQ_Q_NAME_LENGTH);
