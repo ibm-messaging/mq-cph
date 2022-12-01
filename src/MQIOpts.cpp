@@ -277,6 +277,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     } else
       commitFrequency = 0;
 	
+    //Message File
+    if (CPHTRUE != cphConfigGetString(pConfig, messageFile, sizeof(messageFile), "mf"))
+      configError(pConfig, "(mf) Cannot retrieve message file.");
+    CPHTRACEMSG(pTrc, "Message File: %s", messageFile)
+    
     //Message Size
     if (CPHTRUE != cphConfigGetInt(pConfig, (int *) &messageSize, "ms"))
       configError(pConfig, "(ms) Cannot retrieve message size.");

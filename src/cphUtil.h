@@ -1,4 +1,4 @@
-/*<copyright notice="lm-source" pids="" years="2007,2021">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
  * Copyright (c) 2007,2021 IBM Corp.
  *
@@ -87,6 +87,7 @@ char *cphUtilTrim(char *aLine);
 int cphUtilStringEndsWith(char *aString, char *ending);
 char *cphUtilstrcrlf(char *aString);
 char *cphUtilstrcrlfTotabcrlf(char *aString);
+char *cphUtilReadMsgFile(MQLONG *pSize, const char *fileSpec);
 char *cphUtilMakeBigString(int size, int randomise);
 char *cphUtilMakeBigStringWithRFH2(int size, size_t *pRfh2Len);
 char *cphBuildRFH2(MQLONG *pSize);

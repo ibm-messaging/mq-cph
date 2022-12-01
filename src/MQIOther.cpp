@@ -245,7 +245,15 @@ MQIMessage::MQIMessage(MQIOpts const * const pOpts, bool empty) {
     bufferLen = pOpts->receiveSize;
     if(NULL == (buffer = (MQBYTE*) malloc(bufferLen)))
       throw runtime_error("Could not allocate message buffer.");
-  } else {
+  } else if(strcmp(pOpts->messageFile,"") != 0) {
+    buffer = (MQBYTE*) cphUtilReadMsgFile(&messageLen, pOpts->messageFile);
+    if(buffer == NULL) {
+     printf("Fatal Error: A message file has been specified but it does not exist.\n");
+     printf("Message file : %s\n",pOpts->messageFile);
+     exit(8);
+    }
+    bufferLen = messageLen;
+  } else{
     size_t rfh2size = 0;
     buffer = (MQBYTE*) (pOpts->useRFH2 ? cphUtilMakeBigStringWithRFH2(pOpts->messageSize, &rfh2size) : cphUtilMakeBigString(pOpts->messageSize, pOpts->isRandom));
     if(buffer==NULL) throw runtime_error("Could not allocate message buffer.");

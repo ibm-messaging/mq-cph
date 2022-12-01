@@ -1,4 +1,4 @@
-/*<copyright notice="lm-source" pids="" years="2007,2021">*/
+/*<copyright notice="lm-source" pids="" years="2007,2022">*/
 /*******************************************************************************
  * Copyright (c) 2007,2021 IBM Corp.
  *
@@ -558,6 +558,40 @@ char *cphUtilstrcrlfTotabcrlf(char *aString) {
     }
     return(aString);
 
+}
+
+/*
+** Method: cphUtilReadMsgFile
+**
+** Function to return a char array from the contents of a file. This is used to build the message contents to be published. The
+** character string is allocated with realloc and needs to be disposed of by the caller.
+**
+** Input Parameters: pSize - pointer to MQLONG where the length of the char* read can pe written to.
+**                   fileSpec - Fully qualified filename.
+**
+** Returns: a pointer to the built character string or NULL, if the file indicated by fileSpec does not exist.
+**
+*/
+char *cphUtilReadMsgFile(MQLONG *pSize, const char *fileSpec) { 
+   MQLONG readSize=4096;
+   *pSize = 0;
+   char *msg=NULL;
+   MQLONG elementsRead = 0;
+
+   FILE *msgFile = fopen(fileSpec, "rb");
+
+   if (msgFile == NULL) return NULL;
+
+   do {
+      *pSize = *pSize + readSize; 
+      msg=realloc(msg, *pSize);
+      elementsRead = (MQLONG) fread(msg + *pSize - readSize, 1, readSize, msgFile);
+   } while(elementsRead == readSize);
+
+   *pSize = *pSize - (readSize - elementsRead);
+   msg=realloc(msg, *pSize);
+
+   return msg;
 }
 
 /*

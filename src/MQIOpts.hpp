@@ -1,4 +1,4 @@
-/*<copyright notice="lm-source" pids="" years="2014,2020">*/
+/*<copyright notice="lm-source" pids="" years="2014,2022">*/
 /*******************************************************************************
  * Copyright (c) 2014,2020 IBM Corp.
  *
@@ -97,6 +97,7 @@ public:
 
   //Put & Get options
   char destinationPrefix[MQ_Q_NAME_LENGTH];
+  char messageFile[512];
   MQLONG messageSize;
   bool isRandom;
   unsigned int commitFrequency; //How frequently to commit transactions. 0 means non-transactional
