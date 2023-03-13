@@ -59,7 +59,7 @@ Or you can call it from another Python script:
 #!/usr/bin/env python
 import runcph_agg
 
-runcph_agg.launch("./cph -vo 3 -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb qm_name -jt mqc -jh qm_host, 10, 3, 0)
+runcph_agg.launch("./cph -vo 3 -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb qm_name -jt mqc -jh qm_host", 10, 3, 0)
 ```
 
 For command line usage:
