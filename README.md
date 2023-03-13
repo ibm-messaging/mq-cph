@@ -49,9 +49,9 @@ See ([MQ-CPH_Introduction.pdf](samples/MQ-CPH_Introduction.pdf)) in the samples 
 ### Running multiple mq-cph processes in parallel.  
 A Python script [runcph_agg.py](samples/utilities/runcph_agg.py) can be used to spread threads across multiple mq-cph processes. The script will monitor and aggregate the output from multiple processes, reporting the overall message rate at runtime and on shutdown.
 
-You can use it in two ways. E.g. to run 10 threads across 3 processes, either call it directly from the command line:
+You can use it in two ways. E.g. to run 10 threads across 3 processes, either call it directly from the command line (note that you can leave the -nt parm on the mq-cph command, but it will be ignored. The number of threads is controlled by the -t parm of runcph_agg.py instead).
 ```
-runcph_agg.py -c "./cph -vo 3 -nt $threads -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh mqperfxx40" -t 10 -p 3
+runcph_agg.py -c "./cph -vo 3 -nt 1 -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb qm_name -jt mqc -jh qm_host" -t 10 -p 3
 ```
 
 Or you can call it from another Python script:
@@ -59,7 +59,7 @@ Or you can call it from another Python script:
 #!/usr/bin/env python
 import runcph_agg
 
-runcph_agg.launch("./cph -vo 3 -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh mqperfxx40", 10, 3, 0)
+runcph_agg.launch("./cph -vo 3 -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb qm_name -jt mqc -jh qm_host, 10, 3, 0)
 ```
 
 For command line usage:
