@@ -46,6 +46,29 @@ Please see ([cph.pdf](cph.pdf))
 
 See ([MQ-CPH_Introduction.pdf](samples/MQ-CPH_Introduction.pdf)) in the samples directory, for an introduction to the tool, along with an example of running it.
 
+### Running multiple mq-cph processes in parallel.  
+A Python script [runcph_agg.py](samples/utilities/runcph_agg.py) can be used to spread threads across multiple mq-cph processes. The script will monitor and aggregate the output from multiple processes, reporting the overall message rate at runtime and on shutdown.
+
+You can use it in two ways. E.g. to run 10 threads across 3 processes, either call it directly from the command line:
+```
+runcph_agg.py -c "./cph -vo 3 -nt $threads -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh mqperfxx40" -t 10 -p 3
+```
+
+Or you can call it from another Python script:
+```
+#!/usr/bin/env python
+import runcph_agg
+
+runcph_agg.launch("./cph -vo 3 -ss 2 -ms 2048 -wt 10 -wi 0 -rl 0 -tx -pp -tc Requester -to 30 -iq REQUEST -oq REPLY -db 1 -dx 10 -dn 1 -jp 1414 -jc SYSTEM.DEF.SVRCONN -jb PERF0 -jt mqc -jh mqperfxx40", 10, 3, 0)
+```
+
+For command line usage:
+```
+runcph_agg.py -h
+```
+
+Similalry to executing mq-cph directly, you must be in the mq-cph dirstory when you call the scirpt, unless you have path 
+
 # Troubleshooting
 
 Please see ([cph.pdf](cph.pdf))
