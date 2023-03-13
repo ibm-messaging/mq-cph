@@ -67,7 +67,7 @@ For command line usage:
 runcph_agg.py -h
 ```
 
-Similalry to executing mq-cph directly, you must be in the mq-cph dirstory when you call the scirpt, unless you have path 
+Similarly to executing mq-cph directly, the runcph_agg.py script needs to be run from the directory in which mq-cph is installed, to access the property files, unless the CPH_INSTALLDIR environment variable is set to indicate their location.
 
 # Troubleshooting
 
