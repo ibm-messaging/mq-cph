@@ -17,8 +17,6 @@ import re
 # runcph_agg.py -h 
 #
 # Paul Harris - February 2023
-#
-# Copyright (c) 2023 IBM Corp.
 ########################################################################################
 
 def stop_process(signum,frame):
@@ -29,6 +27,7 @@ def output_reader(proc, lastProcess, verbose):
     if(verbose > 0):
       thisPid = "pid:"+ str(proc[0].pid) + " "
     for line in iter(proc[0].stdout.readline, b''):
+      line = line.decode('utf-8')
       #print('got line: {}'.format(line.strip()))
       match = regex_dict['idAndRate'].search(line)
       if(match):
@@ -93,7 +92,9 @@ def launch(cphCommandIn, numThreadsIn, numProcessesIn, verboseIn):
    remainder=numberOfThreads % numberOfProcesses
    hiThreadsPerProcess=lowThreadsPerProcess+1                 
 
-   #print("Threads per process: {}".format(threadsPerProcess))
+   #print("Low threads per process: {}".format(lowThreadsPerProcess))
+   #print("High threads per process: {}".format(hiThreadsPerProcess))
+   #print("Remaining threads: {}".format(remainder))
 
    #Split the cph command into an array suitable for subprocess.Popen and find the -nt and -id parms (inserting them with a value of 0, if they're not present). We'll change the values of -nt and -id later.
    cphcmd = shlex.split(cphCommandIn)
@@ -135,7 +136,8 @@ def launch(cphCommandIn, numThreadsIn, numProcessesIn, verboseIn):
    print('---------------------------------------------------------------------------------')
    print('--- Thread distribution (threads={}  processes={})'.format(numberOfThreads,numberOfProcesses))
    print('--- Processes 1 to {} running {} threads'.format(numberOfProcesses-remainder,lowThreadsPerProcess))
-   print('--- Processes {} to {}  (total: {})  running {} threads'.format(numberOfProcesses-remainder+1,numberOfProcesses,remainder,hiThreadsPerProcess))
+   if(remainder > 0):
+      print('--- Processes {} to {}  (total: {})  running {} threads'.format(numberOfProcesses-remainder+1,numberOfProcesses,remainder,hiThreadsPerProcess))
    print('---------------------------------------------------------------------------------')
    print('totalJobIterations={},maxSeconds={},avgJobRate={:.2f},avgRatePerProcess={:.2f}'.format(iterations,totalSeconds,rateAccumulator, rateAccumulator / numberOfProcesses))
 
