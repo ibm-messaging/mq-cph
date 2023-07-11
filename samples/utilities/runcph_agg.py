@@ -17,6 +17,8 @@ import re
 # runcph_agg.py -h 
 #
 # Paul Harris - February 2023
+#
+# Copyright (c) 2023 IBM Corp.
 ########################################################################################
 
 def stop_process(signum,frame):
