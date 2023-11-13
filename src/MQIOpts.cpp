@@ -66,16 +66,17 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   if (CPHTRUE != cphConfigGetString(pConfig, temp, sizeof(temp), "jt"))
     configError(pConfig, "(jt) Connection type (client/bindings) cannot be retrieved.");
   CPHTRACEMSG(pTrc, "Connection type: %s", temp)
-  if(string(temp)=="mqb"){
+
+  if (string(temp)=="mqb") {
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "jf"))
       configError(pConfig, "(jf) Cannot retrive fastpath option.");
     connType = tempInt==CPHTRUE ? FASTPATH : STANDARD;
     CPHTRACEMSG(pTrc, "Bind type: %s", connType==FASTPATH ? "fastpath" : "standard")
-  } else if (string(temp)=="mqc"){
+  } else if (string(temp)=="mqc") {
     connType = REMOTE;
-  } else
+  } else {
     configError(pConfig, string("(jt) Unrecognised connection type: ") + temp);
-
+  }
   MQCNO protoCNO = {MQCNO_DEFAULT};
   MQCD protoCD = {MQCD_CLIENT_CONN_DEFAULT};
   MQCSP protoCSP = {MQCSP_DEFAULT};
@@ -88,7 +89,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   // Increasing to 11 to support certificate labels
   protoCD.Version = 11;
 
-  if(connType==REMOTE){
+  if (connType==REMOTE) {
     //Channel name
     if (CPHTRUE != cphConfigGetString(pConfig, channelName, sizeof(channelName), "jc"))
       configError(pConfig, "(jc) Default channel name cannot be retrieved.");
@@ -127,6 +128,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	  //Use ccdt
 	  if (CPHTRUE != cphConfigGetString(pConfig, ccdtURL, sizeof(ccdtURL), "ccdt"))
 	    configError(pConfig, "(ccdt) Cannot retrieve CCDT URL default.");
+
     if (strcmp(ccdtURL, "") != 0) {
       useChannelTable = true;
     } else {
@@ -178,7 +180,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
         protoCNO.SecurityParmsPtr = &csp;
     }
 
-    if(!useChannelTable) { 
+    if (!useChannelTable) { 
        CPHTRACEMSG(pTrc, "Setting up MQCD for remote connection.")
        char tempName[MQ_CONN_NAME_LENGTH];
        sprintf(tempName, "%s(%u)", hostName, portNumber);
@@ -215,7 +217,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
  	     protoCNO.Version = MQCNO_VERSION_6;
        protoCNO.CCDTUrlPtr = ccdtURL;
 	     protoCNO.CCDTUrlLength = (MQLONG)strlen(ccdtURL);
-    }
+     }
   } else if(connType==FASTPATH) {
     CPHTRACEMSG(pTrc, "Setting fastpath option")
     protoCNO.Options |= MQCNO_FASTPATH_BINDING;
@@ -236,7 +238,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   #endif
   }
   
-  if(strcmp(autoReconnect,"") != 0){
+  if (strcmp(autoReconnect,"") != 0) {
      CPHTRACEMSG(pTrc, "Setting automatic reconnect option to %s", autoReconnect)
      if(strcmp(autoReconnect,"MQCNO_RECONNECT_AS_DEF") == 0) protoCNO.Options |= MQCNO_RECONNECT_AS_DEF;
      if(strcmp(autoReconnect,"MQCNO_RECONNECT") == 0) protoCNO.Options |= MQCNO_RECONNECT;
@@ -259,7 +261,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 
   MQMD protoMD = {MQMD_DEFAULT};
 
-  if(putter||getter){
+  if (putter||getter) {
     //Destination prefix
     if (CPHTRUE != cphConfigGetString(pConfig, destinationPrefix, sizeof(destinationPrefix), "d"))
       configError(pConfig, "(d) Cannot retrieve destination prefix.");
@@ -269,14 +271,16 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "tx"))
       configError(pConfig, "(tx) Cannot retrieve transactionality option.");
     CPHTRACEMSG(pTrc, "Transactional: %s", tempInt>0 ? "yes" : "no")
-    if(tempInt==CPHTRUE){
+
+    if (tempInt==CPHTRUE) {
       if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &commitFrequency, "cc"))
         configError(pConfig, "(cc) Cannot retrieve commit count value.");
-	  txSet=true;
+	    txSet=true;
       CPHTRACEMSG(pTrc, "Commit count: %d", commitFrequency)
-    } else
+    } else {
       commitFrequency = 0;
-	
+    }
+
     //Message File
     if (CPHTRUE != cphConfigGetString(pConfig, messageFile, sizeof(messageFile), "mf"))
       configError(pConfig, "(mf) Cannot retrieve message file.");
@@ -285,11 +289,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     //Message Size
     if (CPHTRUE != cphConfigGetInt(pConfig, (int *) &messageSize, "ms"))
       configError(pConfig, "(ms) Cannot retrieve message size.");
-    if(messageSize==0) messageSize = 1000;
+    
+    if (messageSize==0) messageSize = 1000;
     CPHTRACEMSG(pTrc, "Message size: %d", messageSize)
 
     //Randomise Message
-       if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "mr"))
+    if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "mr"))
       configError(pConfig, "(mr) Cannot retrieve message randomise option.");
     isRandom = tempInt==CPHTRUE;
     CPHTRACEMSG(pTrc, "Random message content: %s", isRandom ? "yes" : "no")
@@ -297,16 +302,18 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     //Use message handle?
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "mh"))
       configError(pConfig, "(mh) Cannot retrieve message handle option.");
+    
     useMessageHandle = tempInt==CPHTRUE;
     CPHTRACEMSG(pTrc, "Use message handle: %s", useMessageHandle ? "yes" : "no")
 
     //Use RFH2?
-    if(useMessageHandle){
+    if (useMessageHandle) {
       if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "rf"))
         configError(pConfig, "(rf) Cannot retrieve RFH2 option.");
       useRFH2 = tempInt==CPHTRUE;
-    } else
+    } else {
       useRFH2 = false;
+    }
     CPHTRACEMSG(pTrc, "Use RFH2 header: %s", useRFH2 ? "yes" : "no")
 
     memcpy(protoMD.Format, (useRFH2||useMessageHandle) ? MQFMT_RF_HEADER_2 : MQFMT_STRING, (size_t)MQ_FORMAT_LENGTH);
@@ -321,33 +328,33 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   //For modules that loop round Put/Get, (PutGet & Requester)
   //we can specify more granular transaction scopes with the
   //txp & txg parms (these are mutually exclusive to the tx parm)
-  if(putter && getter){  
+  if (putter && getter) {  
 	 char module[80] = {'\0'};
 	 cphConfigGetString(pConfig, module, sizeof(module), "tc");
-	 if(strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0){
+	 if (strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0) {
     
-	    if(CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txp")){
+	    if (CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txp")) {
 		    CPHTRACEMSG(pConfig->pTrc, "txp flag set: %s", tempInt ? "yes" : "no")
-		    if(tempInt == CPHTRUE){
-		 	   if(txSet) configError(pConfig, "tx and txp flags cannot both be true");
-			   commitPGPut = true;
+		    if(tempInt == CPHTRUE) {
+		 	    if(txSet) configError(pConfig, "tx and txp flags cannot both be true");
+			    commitPGPut = true;
 		    } else {
-		 	   if(txSet) commitPGPut = true;
+		 	    if(txSet) commitPGPut = true;
 		    }
 	    }
 	 
-	    if(CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txg")){
+	    if (CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txg")) {
 		    CPHTRACEMSG(pConfig->pTrc, "txg flag set: %s", tempInt ? "yes" : "no")
-		    if(tempInt == CPHTRUE){
-		 	   if(txSet) configError(pConfig, "tx and txg flags cannot both be true");
-			   commitFrequency = 1;
+		    if (tempInt == CPHTRUE) {
+		 	    if (txSet) configError(pConfig, "tx and txg flags cannot both be true");
+			    commitFrequency = 1;
 		    }
 	    }
 	 } else {
 		 //ReconnectTimer modules are a special case that have both commits in the msgOneIteration function.
 		 //If we're using transactions then setting commitFrequency to 0 will stop the MQIWorkerThread
 		 //class from committing outside of the msgOneIteration function for this case, as it's already been committed
-		 if(reconnector && txSet )commitFrequency=0;
+		 if (reconnector && txSet ) commitFrequency = 0;
 	 }
   }
   
@@ -357,7 +364,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
    * -----------
    */
 
-  if(putter){
+  if (putter) {
     //Persistence
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "pp"))
       configError(pConfig, "(pp) Cannot retrieve persistence option.");
@@ -386,7 +393,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
    * -----------
    */
 
-  if(getter){
+  if (getter) {
     //Timeout
     if (CPHTRUE != cphConfigGetInt(pConfig, (int *) &timeout, "to"))
       configError(pConfig, "(to) Timeout value cannot be retrieved.");
@@ -401,30 +408,31 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     CPHTRACEMSG(pTrc, "Receive Message buffer size: %d", receiveSize)
 
     //Read-ahead
-    if(connType==REMOTE){
+    if (connType==REMOTE) {
       if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "jy"))
         configError(pConfig, "(jy) Cannot retrieve Read Ahead option.");
       readAhead = tempInt==CPHTRUE;
       CPHTRACEMSG(pTrc, "Read-ahead: %s", readAhead ? "yes" : "no")
-    } else readAhead = false;
+    } else {
+      readAhead = false;
+    }
 
     MQGMO protoGMO = {MQGMO_DEFAULT};
     protoGMO.Version = MQGMO_VERSION_3;
-	protoGMO.Options = MQGMO_WAIT;
+	  protoGMO.Options = MQGMO_WAIT;
 	
-	//Set data conversion if required
-	if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "cv"))
-		 configError(pConfig, "(cv) Cannot retrieve data conversion option.");
+	  //Set data conversion if required
+	  if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "cv"))
+		  configError(pConfig, "(cv) Cannot retrieve data conversion option.");
 	
-	if(CPHTRUE == tempInt) {
-	   protoGMO.Options |= MQGMO_CONVERT;
+	  if (CPHTRUE == tempInt) {
+	    protoGMO.Options |= MQGMO_CONVERT;
     }
 	
-    if(commitFrequency>0) protoGMO.Options |= MQGMO_SYNCPOINT;
-    if(useRFH2) protoGMO.Options |= MQGMO_PROPERTIES_FORCE_MQRFH2;
+    if (commitFrequency>0) protoGMO.Options |= MQGMO_SYNCPOINT;
+    if (useRFH2) protoGMO.Options |= MQGMO_PROPERTIES_FORCE_MQRFH2;
     protoGMO.WaitInterval = timeout==-1 ? MQWI_UNLIMITED : timeout * 1000;
     gmo = protoGMO;
-
     getMD = protoMD;
   }
 
@@ -457,7 +465,9 @@ void MQIOpts::resetConnectionDef(char *hostname, int port) {
 	char tempName[MQ_CONN_NAME_LENGTH];
 	cd=cd2;
 	cno=cno2;
-		sprintf(tempName, "%s(%d)", hostname, port);
+	sprintf(tempName, "%s(%d)", hostname, port);
 	strncpy(cd.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
 }
+
+//cph Namespace
 }
