@@ -273,12 +273,20 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     CPHTRACEMSG(pTrc, "Transactional: %s", tempInt>0 ? "yes" : "no")
 
     if (tempInt==CPHTRUE) {
+      //Transactional
       if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &commitFrequency, "cc"))
         configError(pConfig, "(cc) Cannot retrieve commit count value.");
 	    txSet=true;
       CPHTRACEMSG(pTrc, "Commit count: %d", commitFrequency)
     } else {
+      //Non transactional
       commitFrequency = 0;
+
+      //Check no syncpoint override
+      if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "txz"))
+        configError(pConfig, "(tx) Cannot retrieve no syncpoint override option.");
+      CPHTRACEMSG(pTrc, "No syncpoint override value: %s", tempInt ? "true" : "false") 
+      noSyncOverride = tempInt==CPHTRUE;
     }
 
     //Message File
@@ -371,6 +379,14 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     isPersistent = tempInt==CPHTRUE;
     CPHTRACEMSG(pTrc, "Persistent: %s", isPersistent ? "yes" : "no")
 
+    //Check DEFPSIST override
+    if (!isPersistent) {
+      if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "ppn"))
+        configError(pConfig, "(pp) Cannot retrieve persistence override option.");
+      ppnOverride = tempInt==CPHTRUE;
+      CPHTRACEMSG(pTrc, "Non Persistent Override: %s", ppnOverride ? "yes" : "no")
+    }
+
     // Use PUT1?
     if(CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "p1"))
       configError(pConfig, "(p1) Cannot determine whether to use PUT1.");
@@ -380,11 +396,19 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     MQPMO protoPMO = {MQPMO_DEFAULT};
     protoPMO.Version = MQPMO_VERSION_3;
     protoPMO.Options |= MQPMO_NEW_MSG_ID | MQPMO_NEW_CORREL_ID;
-    if (txSet  || commitPGPut) protoPMO.Options |= MQPMO_SYNCPOINT;
+    if (txSet  || commitPGPut) { 
+      protoPMO.Options |= MQPMO_SYNCPOINT;
+    } else if (noSyncOverride) {
+      protoPMO.Options |= MQPMO_NO_SYNCPOINT;
+    }
     pmo = protoPMO;
 
     putMD = protoMD;
-    if(isPersistent) putMD.Persistence = MQPER_PERSISTENT;
+    if (isPersistent) { 
+      putMD.Persistence = MQPER_PERSISTENT;
+    } else if (ppnOverride) {
+      putMD.Persistence = MQPER_NOT_PERSISTENT;
+    }
   }
 
   /*
@@ -429,7 +453,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	    protoGMO.Options |= MQGMO_CONVERT;
     }
 	
-    if (commitFrequency>0) protoGMO.Options |= MQGMO_SYNCPOINT;
+    if (commitFrequency>0) {
+      protoGMO.Options |= MQGMO_SYNCPOINT; 
+    } else if (noSyncOverride) {
+      protoGMO.Options |= MQGMO_NO_SYNCPOINT; 
+    }
     if (useRFH2) protoGMO.Options |= MQGMO_PROPERTIES_FORCE_MQRFH2;
     protoGMO.WaitInterval = timeout==-1 ? MQWI_UNLIMITED : timeout * 1000;
     gmo = protoGMO;

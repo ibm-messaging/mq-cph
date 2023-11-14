@@ -89,6 +89,8 @@ public:
   //Put options
   bool isPersistent;
   bool put1;
+  bool ppnOverride;
+  bool noSyncOverride;
 
   //Get options
   MQLONG timeout;
