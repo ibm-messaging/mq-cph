@@ -337,9 +337,9 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   //we can specify more granular transaction scopes with the
   //txp & txg parms (these are mutually exclusive to the tx parm)
   if (putter && getter) {  
-	 char module[80] = {'\0'};
-	 cphConfigGetString(pConfig, module, sizeof(module), "tc");
-	 if (strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0) {
+	  char module[80] = {'\0'};
+	  cphConfigGetString(pConfig, module, sizeof(module), "tc");
+	  if (strcmp(module,"Requester") == 0 || strcmp(module, "PutGet") == 0) {
     
 	    if (CPHTRUE == cphConfigGetBoolean(pConfig, &tempInt, "txp")) {
 		    CPHTRACEMSG(pConfig->pTrc, "txp flag set: %s", tempInt ? "yes" : "no")
@@ -358,12 +358,14 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 			    commitFrequency = 1;
 		    }
 	    }
-	 } else {
+	  } else {
 		 //ReconnectTimer modules are a special case that have both commits in the msgOneIteration function.
 		 //If we're using transactions then setting commitFrequency to 0 will stop the MQIWorkerThread
 		 //class from committing outside of the msgOneIteration function for this case, as it's already been committed
-		 if (reconnector && txSet ) commitFrequency = 0;
-	 }
+		  if (reconnector && txSet ) {
+        commitFrequency = 0;
+      }
+	  }
   }
   
   /*
@@ -453,7 +455,10 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	    protoGMO.Options |= MQGMO_CONVERT;
     }
 	
-    if (commitFrequency>0) {
+    // Use of reconnector will have already set commitFrequency to 0, so explicitly set SYNCPOINT before setting it for other cases
+  	if (reconnector && txSet) {
+      protoGMO.Options |= MQGMO_SYNCPOINT; 
+    } else if (commitFrequency>0) {
       protoGMO.Options |= MQGMO_SYNCPOINT; 
     } else if (noSyncOverride) {
       protoGMO.Options |= MQGMO_NO_SYNCPOINT; 
