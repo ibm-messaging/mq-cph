@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2023">*/
+/*<copyright notice="lm-source" pids="" years="2014,2024">*/
 /*******************************************************************************
- * Copyright (c) 2014,2023 IBM Corp.
+ * Copyright (c) 2014,2024 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,8 +80,10 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   MQCNO protoCNO = {MQCNO_DEFAULT};
   MQCD protoCD = {MQCD_CLIENT_CONN_DEFAULT};
   MQCSP protoCSP = {MQCSP_DEFAULT};
+  MQSCO protoSCO = {MQSCO_DEFAULT};
 
-  //CNO Will be updated to version 4, 5 or 6 if SSL, User/Password authentication, or CCDT is in use
+
+  //CNO Will be updated to version 4, 5, 6 or 7 if SSL, User/Password authentication, CCDT or Applname is in use
   //(CCDT code uses URL set programatically in MQCNO - introduced in V9.0)
   protoCNO.Version = MQCNO_VERSION_2;
 
@@ -109,6 +111,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     if (CPHTRUE != cphConfigGetString(pConfig, cipherSpec, sizeof(cipherSpec), "jl"))
       configError(pConfig, "(jl) Default CipherSpec cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Cipher Spec: %s", cipherSpec)
+
+    //Key Repository
+    if(CPHTRUE != cphConfigGetString(pConfig, keyRepository, sizeof(keyRepository), "kr"))
+      configError(pConfig, "(kr)  KeyRepository cannot be retrieved.");
+    CPHTRACEMSG(pTrc, "Key repository: %s", keyRepository);
 
     //TLS Cert Label
     if (CPHTRUE != cphConfigGetString(pConfig, certLabel, sizeof(certLabel), "jw"))
@@ -141,84 +148,93 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 		  configError(pConfig, "(ar) Cannot retrieve automatic reconnection option.");
 	  CPHTRACEMSG(pTrc, "Automatic re-connect: %s", autoReconnect)
 	
+    //Compression list entries
+    if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "cz"))
+      configError(pConfig, "(tx) Cannot retrieve compression list option.");
+    CPHTRACEMSG(pTrc, "Populate Msg Compression List: %s", tempInt>0 ? "yes" : "no")
+    populateMsgCompList = tempInt==CPHTRUE;
 
     //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
     if (strcmp(cipherSpec,"") != 0) {
-      //CSP is only used for password authentication
-      //MQCSP csp = {MQCSP_DEFAULT};
-      //SCO structure used in conjunction with SSL fields in MQCD
-      //MQSCO protoSCO = {MQSCO_DEFAULT};
-      //Override key repository
-      //strncpy(protoSCO.KeyRepository, "c:\\progra~2\\IBM\\WebSph~1\\IBM\\ssl\\key", MQ_SSL_KEY_REPOSITORY_LENGTH);
-
       //SSL requires at least Version 4 of MQCNO (Connection Options),
       //            Version 7 of MQCD(Channel Definition),
       //            Version 1 of MQCSP(Security Parameters) and
       //            Version 4 of MQSCO (SSL Configuration Options)
-
       protoCNO.Version = MQCNO_VERSION_4;
-      //MQCD/protoCD set to version 9 above
+
+      //Set key repository       
+      if (strcmp(keyRepository,"") != 0) {
+        strncpy(protoSCO.KeyRepository, keyRepository, MQ_SSL_KEY_REPOSITORY_LENGTH);
+        sco = protoSCO;
+        protoCNO.SSLConfigPtr = &sco;
+      }
+      //CSP is only used for password authentication
+      //MQCSP csp = {MQCSP_DEFAULT};
+      //SCO structure used in conjunction with SSL fields in MQCD
+
+      //MQCD/protoCD set to version 11 above
       //protoSCO.Version = MQSCO_VERSION_4;   //Not used
     }
-	
+	  
     // Setup userid and password if they have been defined
     if (strcmp(username,"") != 0) {
-        protoCSP.CSPUserIdPtr = username;
-        protoCSP.CSPUserIdLength = (MQLONG) strlen(username);
+      protoCSP.CSPUserIdPtr = username;
+      protoCSP.CSPUserIdLength = (MQLONG) strlen(username);
 
-        if (strcmp(password,"") != 0) {
-        	protoCSP.CSPPasswordPtr = password;
-        	protoCSP.CSPPasswordLength = (MQLONG) strlen(password);
-        }
+      if (strcmp(password,"") != 0) {
+      	protoCSP.CSPPasswordPtr = password;
+      	protoCSP.CSPPasswordLength = (MQLONG) strlen(password);
+      }
 
-        protoCSP.AuthenticationType = MQCSP_AUTH_USER_ID_AND_PWD;
+      protoCSP.AuthenticationType = MQCSP_AUTH_USER_ID_AND_PWD;
 
-        //Username/password authentication requires MQCNO_VERSION 5
-        protoCNO.Version = MQCNO_VERSION_5;
+      //Username/password authentication requires MQCNO_VERSION 5
+      protoCNO.Version = MQCNO_VERSION_5;
 
-		    csp = protoCSP;
-        protoCNO.SecurityParmsPtr = &csp;
+		  csp = protoCSP;
+      protoCNO.SecurityParmsPtr = &csp;
+    }
+
+    if (populateMsgCompList) {
+      protoCD.MsgCompList[0] = MQCOMPRESS_RLE;
+      protoCD.MsgCompList[1] = MQCOMPRESS_ZLIBFAST;     
+      protoCD.MsgCompList[2] = MQCOMPRESS_ZLIBHIGH;     
+      protoCD.MsgCompList[3] = MQCOMPRESS_NONE; 
     }
 
     if (!useChannelTable) { 
-       CPHTRACEMSG(pTrc, "Setting up MQCD for remote connection.")
-       char tempName[MQ_CONN_NAME_LENGTH];
-       sprintf(tempName, "%s(%u)", hostName, portNumber);
-       strncpy(protoCD.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
-       CPHTRACEMSG(pTrc, "Connection name: %s", protoCD.ConnectionName)
+      CPHTRACEMSG(pTrc, "Setting up MQCD for remote connection.")
+      char tempName[MQ_CONN_NAME_LENGTH];
+      sprintf(tempName, "%s(%u)", hostName, portNumber);
+      strncpy(protoCD.ConnectionName, tempName, MQ_CONN_NAME_LENGTH);
+      CPHTRACEMSG(pTrc, "Connection name: %s", protoCD.ConnectionName)
 
-       strncpy(protoCD.ChannelName, channelName, MQ_CHANNEL_NAME_LENGTH);
-       CPHTRACEMSG(pTrc, "Channel name: %s", protoCD.ChannelName)
-    
+      strncpy(protoCD.ChannelName, channelName, MQ_CHANNEL_NAME_LENGTH);
+      CPHTRACEMSG(pTrc, "Channel name: %s", protoCD.ChannelName)
 
-       /* Setting a very large value means that the client will obey the setting on the server */
-       protoCD.SharingConversations = 99999999;
-       CPHTRACEMSG(pTrc, "Setting SHARECNV value to %d.", protoCD.SharingConversations)
+      /* Setting a very large value means that the client will obey the setting on the server */
+      protoCD.SharingConversations = 99999999;
+      CPHTRACEMSG(pTrc, "Setting SHARECNV value to %d.", protoCD.SharingConversations)
 
-       /*Set the max messagelength on the clientconn channel to the maximum permissable */
-	     protoCD.MaxMsgLength = 104857600;
-       CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
+      /*Set the max messagelength on the clientconn channel to the maximum permissable */
+	    protoCD.MaxMsgLength = 104857600;
+      CPHTRACEMSG(pTrc, "Setting MaxMsgLength value to %d.", protoCD.MaxMsgLength)
 	
-
-       //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
-       if (strcmp(cipherSpec,"") != 0) {
-         //Set CipherSpec
-         strncpy(protoCD.SSLCipherSpec, cipherSpec, MQ_SSL_CIPHER_SPEC_LENGTH);
-
-         //Set CertLabel
-         strncpy(protoCD.CertificateLabel, certLabel, MQ_CERT_LABEL_LENGTH);
-
-         //Were only currently setting values in the MQCD, so might not need to bother setting the MQCSP and MQSCO into the MQCNO
-         //protoCNO.SSLConfigPtr = &protoSCO;
-       }
-	     cd = protoCD;
-	     protoCNO.ClientConnPtr = &cd;
-     } else {
- 	     protoCNO.Version = MQCNO_VERSION_6;
-       protoCNO.CCDTUrlPtr = ccdtURL;
-	     protoCNO.CCDTUrlLength = (MQLONG)strlen(ccdtURL);
-     }
-  } else if(connType==FASTPATH) {
+      //Setup SSL structures only if Cipher has been set and not left as the default UNSPECIFIED == ""
+      if (strcmp(cipherSpec,"") != 0) {
+        //Set CipherSpec
+        strncpy(protoCD.SSLCipherSpec, cipherSpec, MQ_SSL_CIPHER_SPEC_LENGTH);
+        //Set CertLabel
+        strncpy(protoCD.CertificateLabel, certLabel, MQ_CERT_LABEL_LENGTH);
+      }
+      cd = protoCD;
+      protoCNO.ClientConnPtr = &cd;
+    } else {
+      protoCNO.Version = MQCNO_VERSION_6;
+      protoCNO.CCDTUrlPtr = ccdtURL;
+      protoCNO.CCDTUrlLength = (MQLONG)strlen(ccdtURL);
+    }
+  } else if (connType==FASTPATH) {
     CPHTRACEMSG(pTrc, "Setting fastpath option")
     protoCNO.Options |= MQCNO_FASTPATH_BINDING;
   }
@@ -239,15 +255,15 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
   }
   
   if (strcmp(autoReconnect,"") != 0) {
-     CPHTRACEMSG(pTrc, "Setting automatic reconnect option to %s", autoReconnect)
-     if(strcmp(autoReconnect,"MQCNO_RECONNECT_AS_DEF") == 0) protoCNO.Options |= MQCNO_RECONNECT_AS_DEF;
-     if(strcmp(autoReconnect,"MQCNO_RECONNECT") == 0) protoCNO.Options |= MQCNO_RECONNECT;
-     if(strcmp(autoReconnect,"MQCNO_RECONNECT_Q_MGR") == 0) protoCNO.Options |= MQCNO_RECONNECT_Q_MGR;
-     if(strcmp(autoReconnect,"MQCNO_RECONNECT_DISABLED") == 0) protoCNO.Options |= MQCNO_RECONNECT_DISABLED;
+    CPHTRACEMSG(pTrc, "Setting automatic reconnect option to %s", autoReconnect)
+    if(strcmp(autoReconnect,"MQCNO_RECONNECT_AS_DEF") == 0) protoCNO.Options |= MQCNO_RECONNECT_AS_DEF;
+    if(strcmp(autoReconnect,"MQCNO_RECONNECT") == 0) protoCNO.Options |= MQCNO_RECONNECT;
+    if(strcmp(autoReconnect,"MQCNO_RECONNECT_Q_MGR") == 0) protoCNO.Options |= MQCNO_RECONNECT_Q_MGR;
+    if(strcmp(autoReconnect,"MQCNO_RECONNECT_DISABLED") == 0) protoCNO.Options |= MQCNO_RECONNECT_DISABLED;
   }
   
   cno = protoCNO;
-  
+
   //Create backups of initially configured MQCNO & MQCD for use by
   //resetConnectionDef
   cd2 = protoCD;

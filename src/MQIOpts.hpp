@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2023">*/
+/*<copyright notice="lm-source" pids="" years="2014,2024">*/
 /*******************************************************************************
- * Copyright (c) 2014,2023 IBM Corp.
+ * Copyright (c) 2014,2024 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ private:
 
   MQMD putMD;
   MQMD getMD;
+  MQSCO sco;
 
 public:
   //Connection options
@@ -78,7 +79,8 @@ public:
   char hostName[80];              //Name of machine hosting queue manager
   unsigned int portNumber;          //Port to connect to machine on
   char cipherSpec[MQ_SSL_CIPHER_SPEC_LENGTH]; //Name of cipherSpec
-  MQCHAR certLabel[MQ_CERT_LABEL_LENGTH + 1]; //Name of cert label
+  MQCHAR certLabel[MQ_CERT_LABEL_LENGTH + 1]; //Name of cert label  
+  MQCHAR keyRepository[MQ_SSL_KEY_REPOSITORY_LENGTH + 1]; // name of key repository
   MQCHAR * username;
   MQCHAR * password;
   char autoReconnect[40];
@@ -91,6 +93,7 @@ public:
   bool put1;
   bool ppnOverride;
   bool noSyncOverride;
+  bool populateMsgCompList;
 
   //Get options
   MQLONG timeout;
