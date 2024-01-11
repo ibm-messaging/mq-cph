@@ -150,7 +150,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 	
     //Compression list entries
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "cz"))
-      configError(pConfig, "(tx) Cannot retrieve compression list option.");
+      configError(pConfig, "(cz) Cannot retrieve compression list option.");
     CPHTRACEMSG(pTrc, "Populate Msg Compression List: %s", tempInt>0 ? "yes" : "no")
     populateMsgCompList = tempInt==CPHTRUE;
 
@@ -300,7 +300,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 
       //Check no syncpoint override
       if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "txz"))
-        configError(pConfig, "(tx) Cannot retrieve no syncpoint override option.");
+        configError(pConfig, "(txz) Cannot retrieve no syncpoint override option.");
       CPHTRACEMSG(pTrc, "No syncpoint override value: %s", tempInt ? "true" : "false") 
       noSyncOverride = tempInt==CPHTRUE;
     }
@@ -400,7 +400,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     //Check DEFPSIST override
     if (!isPersistent) {
       if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "ppn"))
-        configError(pConfig, "(pp) Cannot retrieve persistence override option.");
+        configError(pConfig, "(ppn) Cannot retrieve persistence override option.");
       ppnOverride = tempInt==CPHTRUE;
       CPHTRACEMSG(pTrc, "Non Persistent Override: %s", ppnOverride ? "yes" : "no")
     }
