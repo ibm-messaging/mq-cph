@@ -69,7 +69,7 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
 
   if (string(temp)=="mqb") {
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &tempInt, "jf"))
-      configError(pConfig, "(jf) Cannot retrive fastpath option.");
+      configError(pConfig, "(jf) Cannot retrieve fastpath option.");
     connType = tempInt==CPHTRUE ? FASTPATH : STANDARD;
     CPHTRACEMSG(pTrc, "Bind type: %s", connType==FASTPATH ? "fastpath" : "standard")
   } else if (string(temp)=="mqc") {
