@@ -200,6 +200,8 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
       protoCD.MsgCompList[1] = MQCOMPRESS_ZLIBFAST;     
       protoCD.MsgCompList[2] = MQCOMPRESS_ZLIBHIGH;     
       protoCD.MsgCompList[3] = MQCOMPRESS_NONE; 
+      protoCD.MsgCompList[4] = MQCOMPRESS_LZ4FAST;
+      protoCD.MsgCompList[5] = MQCOMPRESS_LZ4HIGH;
     }
 
     if (!useChannelTable) { 
