@@ -342,7 +342,12 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
     }
     CPHTRACEMSG(pTrc, "Use RFH2 header: %s", useRFH2 ? "yes" : "no")
 
-    memcpy(protoMD.Format, (useRFH2||useMessageHandle) ? MQFMT_RF_HEADER_2 : MQFMT_STRING, (size_t)MQ_FORMAT_LENGTH);
+    //Message Format
+    if (CPHTRUE != cphConfigGetString(pConfig, messageFormat, sizeof(messageFormat), "mfm"))
+      configError(pConfig, "(mfm) Cannot retrieve message format.");
+    CPHTRACEMSG(pTrc, "Message Format: %s", messageFormat)
+
+    memcpy(protoMD.Format, (useRFH2||useMessageHandle) ? MQFMT_RF_HEADER_2 : messageFormat, (size_t)MQ_FORMAT_LENGTH);
   }
   
   /*
