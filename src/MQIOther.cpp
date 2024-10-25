@@ -308,12 +308,12 @@ inline string getErrorMsg(string functionName, MQLONG compCode, MQLONG reasonCod
       len += snprintf(newId + len, MQ_CORREL_ID_LENGTH, "%02X", static_cast<unsigned>(castedId[i]));
     }
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]" << " -correlId: " << newId << " QName: " << qName;
-    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld] CorrelId:%s QName:%s", &functionName[0], compCode, reasonCode, newId, qName);
+    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld] CorrelId:%s QName:%s\n", &functionName[0], compCode, reasonCode, newId, qName);
 
   }
   else{
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]";
-    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld]\n]", &functionName[0], compCode, reasonCode);
+    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld]\n", &functionName[0], compCode, reasonCode);
   }
   if(printDetails){
 	  printf("Created Error message to pass to runtime_error()\n");
