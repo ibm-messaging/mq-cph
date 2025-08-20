@@ -90,7 +90,7 @@ char *cphUtilstrcrlfTotabcrlf(char *aString);
 char *cphUtilReadMsgFile(MQLONG *pSize, const char *fileSpec);
 char *cphUtilMakeBigString(int size, int randomise);
 char *cphUtilMakeBigStringWithRFH2(int size, size_t *pRfh2Len);
-char *cphBuildRFH2(MQLONG *pSize);
+char *cphBuildRFH2(MQLONG *pSize, MQBYTE24 correlationID);
 int cphGetEnv(char *varName, char *varValue, size_t buffSize);
 double cphUtilGetDoubleDuration(CPH_TIME start, CPH_TIME end);
 

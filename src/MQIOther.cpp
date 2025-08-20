@@ -44,6 +44,7 @@ bool MQIException::printDetails = true;
  */
 
 MQCMHO const CrtMHOpts = {MQCMHO_DEFAULT};
+MQSMPO const SetMHOpts = {MQSMPO_DEFAULT};
 MQBMHO const BufMHOpts = {MQBMHO_DEFAULT};
 MQDMHO const DltMHOpts = {MQDMHO_DEFAULT};
 
@@ -56,41 +57,40 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
   CPHTRACEENTRY(pTrc)
 
   snprintf(msg, CPH_MQC_MSG_LEN, "[%s] Connecting to QM: %s", name, pOpts->QMName);
-  
+
   MQCNO cno;
   //char procId[80];
 
   CPH_TIME reconnectStart;
   //long reconnectTime_ms=0;
-  
+
   cno = pOpts->getCNO();
   cno.Version = MQCNO_VERSION_7;
   strcpy(cno.ApplName, name);
 
   if(pOpts->connType==REMOTE && !pOpts->useChannelTable){
-	   snprintf(msg+strlen(msg), CPH_MQC_MSG_LEN-strlen(msg), " (connection: %s; channel: %s)\n",
-        ((MQCD*) cno.ClientConnPtr)->ConnectionName, ((MQCD*) cno.ClientConnPtr)->ChannelName);
-       cphLogPrintLn(pLog, LOG_VERBOSE, msg);
+    snprintf(msg+strlen(msg), CPH_MQC_MSG_LEN-strlen(msg), " (connection: %s; channel: %s)\n", ((MQCD*) cno.ClientConnPtr)->ConnectionName, ((MQCD*) cno.ClientConnPtr)->ChannelName);
+    cphLogPrintLn(pLog, LOG_VERBOSE, msg);
   }
 
-  if(!reconnect){
+  if(!reconnect) {
 	  CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)
-	  ownsConnection = mqrc!=MQRC_ALREADY_CONNECTED;	
+	  ownsConnection = mqrc!=MQRC_ALREADY_CONNECTED;
   } else {
 	  int cc;
 	  int rc;
-	  do{
-		 if(pOwner->threadNum==0){ 
-		    reconnectStart = cphUtilGetNow();	
-		 }
-		 cc = 0;
-		 rc = 0;
-	     try{
-	         CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)	
-	     } catch (cph::MQIException e){
-	       cc = e.compCode;
-		   rc = e.reasonCode;
-         } 
+	  do {
+		  if (pOwner->threadNum==0) {
+		    reconnectStart = cphUtilGetNow();
+		  }
+		cc = 0;
+		rc = 0;
+	  try {
+	    CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)
+	  } catch (cph::MQIException e) {
+	    cc = e.compCode;
+		  rc = e.reasonCode;
+    }
 		 //Code to see the results of reconnect attempts for first thread)
 		 //reconnectTime_ms = cphUtilGetTimeDifference(cphUtilGetNow(),reconnectStart);
    	     //if(pOwner->threadNum==0){
@@ -129,6 +129,19 @@ MQHMSG MQIConnection::createGetMessageHandle() const {
   CPHCALLMQ(pTrc, MQCRTMH, hConn, (PMQVOID) &CrtMHOpts, &rc)
   CPHTRACEEXIT(pTrc)
   return rc;
+}
+
+/*
+ * Method: setMessageProperties
+ * ------------------------------
+ *
+ * Set a property for the message.
+ */
+void MQIConnection::setMessageProperties(MQHMSG messageHandle, MQCHARV* vs, MQPD* pd, MQLONG valuelen, char* value) const {
+  CPHTRACEENTRY(pTrc)
+  CPHCALLMQ(pTrc, MQSETMP, hConn, messageHandle, (PMQVOID) &SetMHOpts, &vs, &pd, MQTYPE_STRING, valuelen, value)
+  CPHTRACEEXIT(pTrc)
+  return;
 }
 
 /*
@@ -182,14 +195,14 @@ void MQIConnection::commitTransaction() const{
  */
 MQLONG MQIConnection::commitTransaction_try() const{
   CPHTRACEENTRY(pTrc)
-	  MQLONG rc =0;
-  try{	
-     CPHCALLMQ(pTrc, MQCMIT, hConn)
-  } catch (cph::MQIException e){
-   rc = e.reasonCode;
+	MQLONG rc =0;
+  try {
+    CPHCALLMQ(pTrc, MQCMIT, hConn)
+  } catch (cph::MQIException e) {
+    rc = e.reasonCode;
   }
   CPHTRACEEXIT(pTrc)
-	  return rc;
+	return rc;
 }
 
 /*
@@ -243,19 +256,19 @@ MQIMessage::MQIMessage(size_t size) :
  *    pOpts - MQ messaging options. Used to determine message size and whether to generate an RFH2 header.
  */
 MQIMessage::MQIMessage(MQIOpts const * const pOpts, bool empty) {
-  if(empty){
+  if(empty) {
     bufferLen = pOpts->receiveSize;
     if(NULL == (buffer = (MQBYTE*) malloc(bufferLen)))
       throw runtime_error("Could not allocate message buffer.");
   } else if(strcmp(pOpts->messageFile,"") != 0) {
     buffer = (MQBYTE*) cphUtilReadMsgFile(&messageLen, pOpts->messageFile);
     if(buffer == NULL) {
-     printf("Fatal Error: A message file has been specified but it does not exist.\n");
-     printf("Message file : %s\n",pOpts->messageFile);
-     exit(8);
+      printf("Fatal Error: A message file has been specified but it does not exist.\n");
+      printf("Message file : %s\n",pOpts->messageFile);
+      exit(8);
     }
     bufferLen = messageLen;
-  } else{
+  } else {
     size_t rfh2size = 0;
     buffer = (MQBYTE*) (pOpts->useRFH2 ? cphUtilMakeBigStringWithRFH2(pOpts->messageSize, &rfh2size) : cphUtilMakeBigString(pOpts->messageSize, pOpts->isRandom));
     if(buffer==NULL) throw runtime_error("Could not allocate message buffer.");
@@ -310,8 +323,7 @@ inline string getErrorMsg(string functionName, MQLONG compCode, MQLONG reasonCod
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]" << " -correlId: " << newId << " QName: " << qName;
     snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld] CorrelId:%s QName:%s\n", &functionName[0], compCode, reasonCode, newId, qName);
 
-  }
-  else{
+  } else {
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]";
     snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld]\n", &functionName[0], compCode, reasonCode);
   }

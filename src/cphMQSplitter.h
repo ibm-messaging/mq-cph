@@ -143,6 +143,18 @@ typedef void (MQENTRY *MQSUBPTR) (
   PMQLONG  pCompCode,
   PMQLONG  pReason);
 
+typedef void (MQENTRY *MQSETMPPTR) (
+  MQHCONN  Hconn,       /* Connection handle */
+  MQHMSG   Hmsg,        /* Message handle */
+  PMQVOID  SetPropOpts, /* Options that control the action of MQSETMP */
+  PMQVOID  pName,        /* Property name */
+  PMQVOID  pPropDesc,    /* Property descriptor */
+  MQLONG   Type,        /* Property data type */
+  MQLONG   ValueLength, /* Length of property value in Value */
+  PMQVOID  Value,       /* Property value */
+  PMQLONG  pCompCode,    /* Completion code */
+  PMQLONG  pReason);      /* Reason code qualifying CompCode */
+
 typedef void (MQENTRY *MQBUFMHPTR) (
   MQHCONN  Hconn,
   MQHMSG   Hmsg,
@@ -178,10 +190,10 @@ typedef void (MQENTRY *MQDLTMHPTR) (
   #ifdef MQEA
     #define FUNCPTR FARPROC
   #endif
-   /* EstablishMQEpsX will load either the local or remote dll according to its input parameter is Client */
-   #define MQLOCAL_NAME  "mqm.dll"
-   #define MQREMOTE_NAME "mqic.dll"
-   #define MQREMOTE_NAME_IS "mqdc.dll"      /* installation specific client dll */
+  /* EstablishMQEpsX will load either the local or remote dll according to its input parameter is Client */
+  #define MQLOCAL_NAME  "mqm.dll"
+  #define MQREMOTE_NAME "mqic.dll"
+  #define MQREMOTE_NAME_IS "mqdc.dll"      /* installation specific client dll */
 
 #elif defined(CPH_UNIX)
 
@@ -213,23 +225,24 @@ typedef void (MQENTRY *MQDLTMHPTR) (
 
 typedef struct mq_epList
 {
- MQCONNPTR  mqconn;
- MQCONNXPTR mqconnx;
- MQDISCPTR  mqdisc;
- MQOPENPTR  mqopen;
- MQCLOSEPTR mqclose;
- MQGETPTR   mqget;
- MQPUTPTR   mqput;
- MQSETPTR   mqset;
- MQPUT1PTR  mqput1;
- MQBACKPTR  mqback;
- MQCMITPTR  mqcmit;
- MQINQPTR   mqinq;
+  MQCONNPTR  mqconn;
+  MQCONNXPTR mqconnx;
+  MQDISCPTR  mqdisc;
+  MQOPENPTR  mqopen;
+  MQCLOSEPTR mqclose;
+  MQGETPTR   mqget;
+  MQPUTPTR   mqput;
+  MQSETPTR   mqset;
+  MQPUT1PTR  mqput1;
+  MQBACKPTR  mqback;
+  MQCMITPTR  mqcmit;
+  MQINQPTR   mqinq;
 #ifndef CPH_WMQV6
- MQSUBPTR   mqsub;
- MQBUFMHPTR mqbufmh;
- MQCRTMHPTR mqcrtmh;
- MQDLTMHPTR mqdltmh;
+  MQSUBPTR   mqsub;
+  MQBUFMHPTR mqbufmh;
+  MQCRTMHPTR mqcrtmh;
+  MQDLTMHPTR mqdltmh;
+  MQSETMPPTR mqsetmp;
 #endif
 } mq_epList;
 

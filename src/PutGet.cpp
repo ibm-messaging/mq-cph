@@ -58,20 +58,21 @@ MQWTCONSTRUCTOR(PutGet, true, true, false) {
     if (CPHTRUE != cphConfigGetBoolean(pConfig, &temp, "cs"))
       configError(pConfig, "(cs) Cannot determine whether to use message selectors.");
     useSelector = temp == CPHTRUE;
-	CPHTRACEMSG(pConfig->pTrc, "Use message selectors: %s", useSelector ? "yes" : "no")
+	  CPHTRACEMSG(pConfig->pTrc, "Use message selectors: %s", useSelector ? "yes" : "no")
 
-	//Use generic selector? (not selecting on correlId)
-	temp = 0;
+	  //Use generic selector? (not selecting on correlId)
+	  temp = 0;
     if (useSelector){
       temp = cphConfigGetString(pConfig, (char *)&customSelector, sizeof(customSelector), "gs") == CPHTRUE;
       useCustomSelector = (temp && (0 != strcmp(customSelector, "")) ? true : false);
-      if (!useCustomSelector)
-        configError(pConfig, "(gs) Cannot determine whether to use generic selector.");
+      // We now support selectors with the use of message handles, so this is no longer an error
+      //if (!useCustomSelector)
+      //  configError(pConfig, "(gs) Cannot determine whether to use generic selector.");
       CPHTRACEMSG(pConfig->pTrc, "Use generic selector: %s", useCustomSelector ? customSelector : "no")
     }
   }
 
-  if(useCorrelId)
+  if(useCorrelId || useSelector)
     generateCorrelID(correlId, pControlThread->procId);
 
   CPHTRACEEXIT(pConfig->pTrc)
@@ -87,7 +88,11 @@ void PutGet::openDestination(){
 
     //create message selector if required
   if (useSelector){
-    pQueue->createSelector(pConfig->pTrc, correlId, useCustomSelector ? customSelector : NULL);
+    if(pOpts->useMessageHandle) {
+      pQueue->createMsgHandleSelector(pConfig->pTrc, correlId);
+    } else {
+      pQueue->createSelector(pConfig->pTrc, correlId, useCustomSelector ? customSelector : NULL);
+    }
   }
 
   pQueue->open(true);

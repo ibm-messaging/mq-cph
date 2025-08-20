@@ -43,15 +43,15 @@
 #include <stdlib.h>
 
 #ifdef CPH_UNIX
-   #include <sys/types.h>
-   #include <errno.h>
-   #if defined(AMQ_AS400)
-     #include <qleawi.h>
-     #include <qusec.h>
-     #include <mih/rslvsp.h>
-   #else
-     #include <dlfcn.h>      /* dynamic load stuff */
-   #endif
+  #include <sys/types.h>
+  #include <errno.h>
+  #if defined(AMQ_AS400)
+    #include <qleawi.h>
+    #include <qusec.h>
+    #include <mih/rslvsp.h>
+  #else
+    #include <dlfcn.h>      /* dynamic load stuff */
+  #endif
 #endif
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
  * Now include MQ header files                                        *
@@ -75,8 +75,6 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
 /*   The Code                                                        */
 /*********************************************************************/
 
-
-
 /**********************************************************************************/
 /*                                                                                */
 /* We have all the standard entry points as copied from cmqc.h - these            */
@@ -85,16 +83,14 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
 /*                                                                                */
 /**********************************************************************************/
 
+/*********************************************************************/
+/*  MQBACK Function -- Back Out Changes                              */
+/*********************************************************************/
 
-
- /*********************************************************************/
- /*  MQBACK Function -- Back Out Changes                              */
- /*********************************************************************/
-
- void MQENTRY MQBACK (
-   MQHCONN  Hconn,      /* Connection handle */
-   PMQLONG  pCompCode,  /* Completion code */
-   PMQLONG  pReason)    /* Reason code qualifying CompCode */
+void MQENTRY MQBACK (
+  MQHCONN  Hconn,      /* Connection handle */
+  PMQLONG  pCompCode,  /* Completion code */
+  PMQLONG  pReason)    /* Reason code qualifying CompCode */
 {
 
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqback)
@@ -109,18 +105,17 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
   }
 }
 
- /*********************************************************************/
- /*  MQCLOSE Function -- Close Object                                 */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQCLOSE Function -- Close Object                                 */
+/*********************************************************************/
 
- void MQENTRY MQCLOSE (
-   MQHCONN  Hconn,      /* Connection handle */
-   PMQHOBJ  pHobj,      /* Object handle */
-   MQLONG   Options,    /* Options that control the action of MQCLOSE */
-   PMQLONG  pCompCode,  /* Completion code */
-   PMQLONG  pReason)    /* Reason code qualifying CompCode */
+void MQENTRY MQCLOSE (
+  MQHCONN  Hconn,      /* Connection handle */
+  PMQHOBJ  pHobj,      /* Object handle */
+  MQLONG   Options,    /* Options that control the action of MQCLOSE */
+  PMQLONG  pCompCode,  /* Completion code */
+  PMQLONG  pReason)    /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqclose )
   {
     (ETM_dynamic_MQ_entries.mqclose)(Hconn,pHobj,Options,pCompCode,pReason);
@@ -130,21 +125,19 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
 
- /*********************************************************************/
- /*  MQCMIT Function -- Commit Changes                                */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQCMIT Function -- Commit Changes                                */
+/*********************************************************************/
 
- void MQENTRY MQCMIT (
+void MQENTRY MQCMIT (
    MQHCONN  Hconn,      /* Connection handle */
    PMQLONG  pCompCode,  /* Completion code */
    PMQLONG  pReason)    /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqcmit )
   {
     (ETM_dynamic_MQ_entries.mqcmit)(Hconn,pCompCode,pReason);
@@ -154,25 +147,24 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
 
- /*********************************************************************/
- /*  MQCONN Function -- Connect Queue Manager                         */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQCONN Function -- Connect Queue Manager                         */
+/*********************************************************************/
 
- void MQENTRY MQCONN (
-   PMQCHAR   pName,      /* Name of queue manager */
-   PMQHCONN  pHconn,     /* Connection handle */
-   PMQLONG   pCompCode,  /* Completion code */
-   PMQLONG   pReason)    /* Reason code qualifying CompCode */
+void MQENTRY MQCONN (
+  PMQCHAR   pName,      /* Name of queue manager */
+  PMQHCONN  pHconn,     /* Connection handle */
+  PMQLONG   pCompCode,  /* Completion code */
+  PMQLONG   pReason)    /* Reason code qualifying CompCode */
 {
 
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqconn )
   {
-     (ETM_dynamic_MQ_entries.mqconn)(pName,pHconn,pCompCode,pReason);
+    (ETM_dynamic_MQ_entries.mqconn)(pName,pHconn,pCompCode,pReason);
   }
   else
   {
@@ -182,24 +174,22 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
   }
 }
 
- /*********************************************************************/
- /*  MQCONNX Function -- Connect Queue Manager                         */
- /*  Note: Extra function here compared to rest of calls - this allows*/
- /*        retry aftre 6000 without bring notes down                  */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQCONNX Function -- Connect Queue Manager                         */
+/*  Note: Extra function here compared to rest of calls - this allows*/
+/*        retry aftre 6000 without bring notes down                  */
+/*********************************************************************/
 
- void MQENTRY MQCONNX (
-   PMQCHAR   pName,      /* Name of queue manager */
-   PMQCNO    pConnectOpts, /* Connect options */
-   PMQHCONN  pHconn,     /* Connection handle */
-   PMQLONG   pCompCode,  /* Completion code */
-   PMQLONG   pReason)    /* Reason code qualifying CompCode */
+void MQENTRY MQCONNX (
+  PMQCHAR   pName,      /* Name of queue manager */
+  PMQCNO    pConnectOpts, /* Connect options */
+  PMQHCONN  pHconn,     /* Connection handle */
+  PMQLONG   pCompCode,  /* Completion code */
+  PMQLONG   pReason)    /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqconnx )
   {
-     (ETM_dynamic_MQ_entries.mqconnx)(pName,pConnectOpts,pHconn,pCompCode,pReason);
-
+    (ETM_dynamic_MQ_entries.mqconnx)(pName,pConnectOpts,pHconn,pCompCode,pReason);
   }
   else
   {
@@ -209,16 +199,15 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
   }
 }
 
- /*********************************************************************/
- /*  MQDISC Function -- Disconnect Queue Manager                      */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQDISC Function -- Disconnect Queue Manager                      */
+/*********************************************************************/
 
- void MQENTRY MQDISC (
-   PMQHCONN  pHconn,     /* Connection handle */
-   PMQLONG   pCompCode,  /* Completion code */
-   PMQLONG   pReason)    /* Reason code qualifying CompCode */
+void MQENTRY MQDISC (
+  PMQHCONN  pHconn,     /* Connection handle */
+  PMQLONG   pCompCode,  /* Completion code */
+  PMQLONG   pReason)    /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqdisc)
   {
     (ETM_dynamic_MQ_entries.mqdisc)(pHconn,pCompCode,pReason);
@@ -228,89 +217,79 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
 
- /*********************************************************************/
- /*  MQGET Function -- Get Message                                    */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQGET Function -- Get Message                                    */
+/*********************************************************************/
 
- void MQENTRY MQGET (
-   MQHCONN  Hconn,         /* Connection handle */
-   MQHOBJ   Hobj,          /* Object handle */
-   PMQVOID  pMsgDesc,      /* Message descriptor */
-   PMQVOID  pGetMsgOpts,   /* Options that control the action of
-                              MQGET */
-   MQLONG   BufferLength,  /* Length in bytes of the Buffer area */
-   PMQVOID  pBuffer,       /* Area to contain the message data */
-   PMQLONG  pDataLength,   /* Length of the message */
-   PMQLONG  pCompCode,     /* Completion code */
-   PMQLONG  pReason)       /* Reason code qualifying CompCode */
+void MQENTRY MQGET (
+  MQHCONN  Hconn,         /* Connection handle */
+  MQHOBJ   Hobj,          /* Object handle */
+  PMQVOID  pMsgDesc,      /* Message descriptor */
+  PMQVOID  pGetMsgOpts,   /* Options that control the action of MQGET */
+  MQLONG   BufferLength,  /* Length in bytes of the Buffer area */
+  PMQVOID  pBuffer,       /* Area to contain the message data */
+  PMQLONG  pDataLength,   /* Length of the message */
+  PMQLONG  pCompCode,     /* Completion code */
+  PMQLONG  pReason)       /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqget)
   {
-    (ETM_dynamic_MQ_entries.mqget)(Hconn,Hobj,pMsgDesc,pGetMsgOpts,BufferLength,
-                                 pBuffer,pDataLength,pCompCode,pReason);
+    (ETM_dynamic_MQ_entries.mqget)(Hconn,Hobj,pMsgDesc,pGetMsgOpts,BufferLength,pBuffer,pDataLength,pCompCode,pReason);
   }
   else
   {
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
 
- /*********************************************************************/
- /*  MQINQ Function -- Inquire Object Attributes                      */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQINQ Function -- Inquire Object Attributes                      */
+/*********************************************************************/
 
- void MQENTRY MQINQ (
-   MQHCONN  Hconn,           /* Connection handle */
-   MQHOBJ   Hobj,            /* Object handle */
-   MQLONG   SelectorCount,   /* Count of selectors */
-   PMQLONG  pSelectors,      /* Array of attribute selectors */
-   MQLONG   IntAttrCount,    /* Count of integer attributes */
-   PMQLONG  pIntAttrs,       /* Array of integer attributes */
-   MQLONG   CharAttrLength,  /* Length of character attributes buffer */
-   PMQCHAR  pCharAttrs,      /* Character attributes */
-   PMQLONG  pCompCode,       /* Completion code */
-   PMQLONG  pReason)         /* Reason code qualifying CompCode */
+void MQENTRY MQINQ (
+  MQHCONN  Hconn,           /* Connection handle */
+  MQHOBJ   Hobj,            /* Object handle */
+  MQLONG   SelectorCount,   /* Count of selectors */
+  PMQLONG  pSelectors,      /* Array of attribute selectors */
+  MQLONG   IntAttrCount,    /* Count of integer attributes */
+  PMQLONG  pIntAttrs,       /* Array of integer attributes */
+  MQLONG   CharAttrLength,  /* Length of character attributes buffer */
+  PMQCHAR  pCharAttrs,      /* Character attributes */
+  PMQLONG  pCompCode,       /* Completion code */
+  PMQLONG  pReason)         /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqinq)
   {
-    (ETM_dynamic_MQ_entries.mqinq)(Hconn,Hobj,SelectorCount,pSelectors,IntAttrCount,
-                                 pIntAttrs,CharAttrLength,pCharAttrs,pCompCode,pReason);
+    (ETM_dynamic_MQ_entries.mqinq)(Hconn,Hobj,SelectorCount,pSelectors,IntAttrCount,pIntAttrs,CharAttrLength,pCharAttrs,pCompCode,pReason);
   }
   else
   {
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
-
 }
 
 
- /*********************************************************************/
- /*  MQOPEN Function -- Open Object                                   */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQOPEN Function -- Open Object                                   */
+/*********************************************************************/
 
- void MQENTRY MQOPEN (
-   MQHCONN  Hconn,      /* Connection handle */
-   PMQVOID  pObjDesc,   /* Object descriptor */
-   MQLONG   Options,    /* Options that control the action of MQOPEN */
-   PMQHOBJ  pHobj,      /* Object handle */
-   PMQLONG  pCompCode,  /* Completion code */
-   PMQLONG  pReason)    /* Reason code qualifying CompCode */
+void MQENTRY MQOPEN (
+  MQHCONN  Hconn,      /* Connection handle */
+  PMQVOID  pObjDesc,   /* Object descriptor */
+  MQLONG   Options,    /* Options that control the action of MQOPEN */
+  PMQHOBJ  pHobj,      /* Object handle */
+  PMQLONG  pCompCode,  /* Completion code */
+  PMQLONG  pReason)    /* Reason code qualifying CompCode */
 {
-
   /*  ------- Changes for defect 22444 end here -----  */
 
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqopen)
@@ -322,128 +301,134 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
-
 }
 
 
- /*********************************************************************/
- /*  MQPUT Function -- Put Message                                    */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQPUT Function -- Put Message                                    */
+/*********************************************************************/
 
- void MQENTRY MQPUT (
-   MQHCONN  Hconn,         /* Connection handle */
-   MQHOBJ   Hobj,          /* Object handle */
-   PMQVOID  pMsgDesc,      /* Message descriptor */
-   PMQVOID  pPutMsgOpts,   /* Options that control the action of
-                              MQPUT */
-   MQLONG   BufferLength,  /* Length of the message in Buffer */
-   PMQVOID  pBuffer,       /* Message data */
-   PMQLONG  pCompCode,     /* Completion code */
-   PMQLONG  pReason)       /* Reason code qualifying CompCode */
+void MQENTRY MQPUT (
+  MQHCONN  Hconn,         /* Connection handle */
+  MQHOBJ   Hobj,          /* Object handle */
+  PMQVOID  pMsgDesc,      /* Message descriptor */
+  PMQVOID  pPutMsgOpts,   /* Options that control the action of MQPUT */
+  MQLONG   BufferLength,  /* Length of the message in Buffer */
+  PMQVOID  pBuffer,       /* Message data */
+  PMQLONG  pCompCode,     /* Completion code */
+  PMQLONG  pReason)       /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqput)
   {
-    (ETM_dynamic_MQ_entries.mqput)(Hconn,Hobj,pMsgDesc,pPutMsgOpts,BufferLength,
-                                 pBuffer,pCompCode,pReason);
+    (ETM_dynamic_MQ_entries.mqput)(Hconn,Hobj,pMsgDesc,pPutMsgOpts,BufferLength,pBuffer,pCompCode,pReason);
   }
   else
   {
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
-
 }
 
 
- /*********************************************************************/
- /*  MQPUT1 Function -- Put One Message                               */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQPUT1 Function -- Put One Message                               */
+/*********************************************************************/
 
- void MQENTRY MQPUT1 (
-   MQHCONN  Hconn,         /* Connection handle */
-   PMQVOID  pObjDesc,      /* Object descriptor */
-   PMQVOID  pMsgDesc,      /* Message descriptor */
-   PMQVOID  pPutMsgOpts,   /* Options that control the action of
-                              MQPUT1 */
-   MQLONG   BufferLength,  /* Length of the message in Buffer */
-   PMQVOID  pBuffer,       /* Message data */
-   PMQLONG  pCompCode,     /* Completion code */
-   PMQLONG  pReason)       /* Reason code qualifying CompCode */
+void MQENTRY MQPUT1 (
+  MQHCONN  Hconn,         /* Connection handle */
+  PMQVOID  pObjDesc,      /* Object descriptor */
+  PMQVOID  pMsgDesc,      /* Message descriptor */
+  PMQVOID  pPutMsgOpts,   /* Options that control the action of MQPUT1 */
+  MQLONG   BufferLength,  /* Length of the message in Buffer */
+  PMQVOID  pBuffer,       /* Message data */
+  PMQLONG  pCompCode,     /* Completion code */
+  PMQLONG  pReason)       /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqput1)
   {
-    (ETM_dynamic_MQ_entries.mqput1)(Hconn,pObjDesc,pMsgDesc,pPutMsgOpts,BufferLength,
-                                 pBuffer,pCompCode,pReason);
+    (ETM_dynamic_MQ_entries.mqput1)(Hconn,pObjDesc,pMsgDesc,pPutMsgOpts,BufferLength,pBuffer,pCompCode,pReason);
   }
   else
   {
     *pCompCode = MQCC_FAILED;
 //    *pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
 
- /*********************************************************************/
- /*  MQSET Function -- Set Object Attributes                          */
- /*********************************************************************/
+/*********************************************************************/
+/*  MQSET Function -- Set Object Attributes                          */
+/*********************************************************************/
 
- void MQENTRY MQSET (
-   MQHCONN  Hconn,           /* Connection handle */
-   MQHOBJ   Hobj,            /* Object handle */
-   MQLONG   SelectorCount,   /* Count of selectors */
-   PMQLONG  pSelectors,      /* Array of attribute selectors */
-   MQLONG   IntAttrCount,    /* Count of integer attributes */
-   PMQLONG  pIntAttrs,       /* Array of integer attributes */
-   MQLONG   CharAttrLength,  /* Length of character attributes buffer */
-   PMQCHAR  pCharAttrs,      /* Character attributes */
-   PMQLONG  pCompCode,       /* Completion code */
-   PMQLONG  pReason)         /* Reason code qualifying CompCode */
+void MQENTRY MQSET (
+  MQHCONN  Hconn,           /* Connection handle */
+  MQHOBJ   Hobj,            /* Object handle */
+  MQLONG   SelectorCount,   /* Count of selectors */
+  PMQLONG  pSelectors,      /* Array of attribute selectors */
+  MQLONG   IntAttrCount,    /* Count of integer attributes */
+  PMQLONG  pIntAttrs,       /* Array of integer attributes */
+  MQLONG   CharAttrLength,  /* Length of character attributes buffer */
+  PMQCHAR  pCharAttrs,      /* Character attributes */
+  PMQLONG  pCompCode,       /* Completion code */
+  PMQLONG  pReason)         /* Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqset)
   {
-    (ETM_dynamic_MQ_entries.mqset)(Hconn,Hobj,SelectorCount,pSelectors,IntAttrCount,
-                                 pIntAttrs,CharAttrLength,pCharAttrs,pCompCode,pReason);
+    (ETM_dynamic_MQ_entries.mqset)(Hconn,Hobj,SelectorCount,pSelectors,IntAttrCount,pIntAttrs,CharAttrLength,pCharAttrs,pCompCode,pReason);
   }
   else
   {
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
+/*********************************************************************/
+/*  MQSETMP Function -- Set Message properties                       */
+/*********************************************************************/
 
-
-
- /****************************************************************/
- /*  MQBUFMH Function -- Buffer To Message Handle                */
- /****************************************************************/
-
-
- void MQENTRY MQBUFMH (
-   MQHCONN   Hconn,         /* I: Connection handle */
-   MQHMSG    Hmsg,          /* I: Message handle */
-   PMQVOID   pBufMsgHOpts,  /* I: Options that control the action of
-                               MQBUFMH */
-   PMQVOID   pMsgDesc,      /* IO: Message descriptor */
-   MQLONG    BufferLength,  /* IL: Length in bytes of the Buffer area */
-   PMQVOID   pBuffer,       /* OB: Area to contain the message buffer */
-   PMQLONG   pDataLength,   /* O: Length of the output buffer */
-   PMQLONG   pCompCode,     /* OC: Completion code */
-   PMQLONG   pReason)       /* OR: Reason code qualifying CompCode */
-
+void MQENTRY MQSETMP (
+  MQHCONN  Hconn,       /* Connection handle */
+  MQHMSG   Hmsg,        /* Message handle */
+  PMQVOID  SetPropOpts, /* Options that control the action of MQSETMP */
+  PMQVOID  pName,        /* Property name */
+  PMQVOID  pPropDesc,    /* Property descriptor */
+  MQLONG   Type,        /* Property data type */
+  MQLONG   ValueLength, /* Length of property value in Value */
+  PMQVOID  Value,       /* Property value */
+  PMQLONG  pCompCode,    /* Completion code */
+  PMQLONG  pReason)      /* Reason code qualifying CompCode */
 {
+  if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqset)
+  {
+    (ETM_dynamic_MQ_entries.mqsetmp)(Hconn, Hmsg, SetPropOpts, pName, pPropDesc, Type, ValueLength, Value, pCompCode, pReason);
+  }
+  else
+  {
+    *pCompCode = MQCC_FAILED;
+    *pReason   = 6000;
+  }
+}
 
+/****************************************************************/
+/*  MQBUFMH Function -- Buffer To Message Handle                */
+/****************************************************************/
+
+void MQENTRY MQBUFMH (
+  MQHCONN   Hconn,         /* I: Connection handle */
+  MQHMSG    Hmsg,          /* I: Message handle */
+  PMQVOID   pBufMsgHOpts,  /* I: Options that control the action of MQBUFMH */
+  PMQVOID   pMsgDesc,      /* IO: Message descriptor */
+  MQLONG    BufferLength,  /* IL: Length in bytes of the Buffer area */
+  PMQVOID   pBuffer,       /* OB: Area to contain the message buffer */
+  PMQLONG   pDataLength,   /* O: Length of the output buffer */
+  PMQLONG   pCompCode,     /* OC: Completion code */
+  PMQLONG   pReason)       /* OR: Reason code qualifying CompCode */
+{
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqbufmh)
   {
     (ETM_dynamic_MQ_entries.mqbufmh)(Hconn,Hmsg,pBufMsgHOpts,pMsgDesc,BufferLength,pBuffer,pDataLength,pCompCode,pReason);
@@ -453,25 +438,20 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
- /****************************************************************/
- /*  MQCRTMH Function -- Create Message Handle                   */
- /****************************************************************/
+/****************************************************************/
+/*  MQCRTMH Function -- Create Message Handle                   */
+/****************************************************************/
 
-
- void MQENTRY MQCRTMH (
-   MQHCONN   Hconn,         /* I: Connection handle */
-   PMQVOID   pCrtMsgHOpts,  /* IO: Options that control the action of
-                               MQCRTMH */
-   PMQHMSG   pHmsg,         /* IO: Message handle */
-   PMQLONG   pCompCode,     /* OC: Completion code */
-   PMQLONG   pReason)       /* OR: Reason code qualifying CompCode */
-
+void MQENTRY MQCRTMH (
+  MQHCONN   Hconn,         /* I: Connection handle */
+  PMQVOID   pCrtMsgHOpts,  /* IO: Options that control the action of MQCRTMH */
+  PMQHMSG   pHmsg,         /* IO: Message handle */
+  PMQLONG   pCompCode,     /* OC: Completion code */
+  PMQLONG   pReason)       /* OR: Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqcrtmh)
   {
     (ETM_dynamic_MQ_entries.mqcrtmh)(Hconn,pCrtMsgHOpts,pHmsg,pCompCode,pReason);
@@ -481,26 +461,20 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
+/****************************************************************/
+/*  MQDLTMH Function -- Delete Message Handle                   */
+/****************************************************************/
 
- /****************************************************************/
- /*  MQDLTMH Function -- Delete Message Handle                   */
- /****************************************************************/
-
-
- void MQENTRY MQDLTMH (
-   MQHCONN   Hconn,         /* I: Connection handle */
-   PMQHMSG   pHmsg,         /* IO: Message handle */
-   PMQVOID   pDltMsgHOpts,  /* I: Options that control the action of
-                               MQDLTMH */
-   PMQLONG   pCompCode,     /* OC: Completion code */
-   PMQLONG   pReason)       /* OR: Reason code qualifying CompCode */
-
+void MQENTRY MQDLTMH (
+  MQHCONN   Hconn,         /* I: Connection handle */
+  PMQHMSG   pHmsg,         /* IO: Message handle */
+  PMQVOID   pDltMsgHOpts,  /* I: Options that control the action of MQDLTMH */
+  PMQLONG   pCompCode,     /* OC: Completion code */
+  PMQLONG   pReason)       /* OR: Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqdltmh)
   {
     (ETM_dynamic_MQ_entries.mqdltmh)(Hconn,pHmsg,pDltMsgHOpts,pCompCode,pReason);
@@ -510,27 +484,21 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
+/*********************************************************************/
+/*  MQSUBSCRIBE Function -- Subscribe to a given destination         */
+/*********************************************************************/
 
-
- /*********************************************************************/
- /*  MQSUBSCRIBE Function -- Subscribe to a given destination         */
- /*********************************************************************/
-
- void MQENTRY MQSUB (
-
-   MQHCONN  Hconn,      /* I: Connection handle */
-   PMQVOID  pSubDesc,   /* IO: Subscription descriptor */
-   PMQHOBJ  pHobj,      /* IO: Object handle for queue */
-   PMQHOBJ  pHsub,      /* O: Subscription object handle */
-   PMQLONG  pCompCode,  /* OC: Completion code */
-   PMQLONG  pReason)    /* OR: Reason code qualifying CompCode */
-
+void MQENTRY MQSUB (
+  MQHCONN  Hconn,      /* I: Connection handle */
+  PMQVOID  pSubDesc,   /* IO: Subscription descriptor */
+  PMQHOBJ  pHobj,      /* IO: Object handle for queue */
+  PMQHOBJ  pHsub,      /* O: Subscription object handle */
+  PMQLONG  pCompCode,  /* OC: Completion code */
+  PMQLONG  pReason)    /* OR: Reason code qualifying CompCode */
 {
-
   if (ETM_DLL_found && ETM_dynamic_MQ_entries.mqsub)
   {
     (ETM_dynamic_MQ_entries.mqsub)(Hconn,pSubDesc,pHobj,pHsub,pCompCode,pReason);
@@ -540,7 +508,6 @@ unsigned long ETM_Tried = 0;        /* 0 means haven't tried establish*/
     *pCompCode = MQCC_FAILED;
     //*pReason   = MQRC_LIBRARY_LOAD_ERROR;
     *pReason   = 6000;
-
   }
 }
 
@@ -562,13 +529,13 @@ int cphMQSplitterCheckMQLoaded(CPH_LOG *pLog, int isClient) {
 
   /* If this is the first time this method has been called then attempt to load the client/server DLL/shared lib */
   if (ETM_Tried==0) {
-   ETM_DLL_found = cphMQSplitterLoadMQ(pLog, &ETM_dynamic_MQ_entries, isClient);
-   ETM_Tried = 1;
+    ETM_DLL_found = cphMQSplitterLoadMQ(pLog, &ETM_dynamic_MQ_entries, isClient);
+    ETM_Tried = 1;
   }
 
   if (!ETM_DLL_found)  return(-1);
   return(0);
- }
+}
 
 
 #if defined(WIN32)
@@ -598,19 +565,19 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
   /* first we looksee if user is telling us to load a specific library */
   if (0 == isClient)
   {
-     strcpy(DLL_name, MQLOCAL_NAME);
+    strcpy(DLL_name, MQLOCAL_NAME);
   }
   else
   {
-     char *pEnvStr = getenv("CPH_USE_INSTALLATION_SPECIFIC_CLIENT_LIBRARY");  /* get ptr to environment string */
+    char *pEnvStr = getenv("CPH_USE_INSTALLATION_SPECIFIC_CLIENT_LIBRARY");  /* get ptr to environment string */
 
-     if (pEnvStr != NULL)
-        strcpy(DLL_name, MQREMOTE_NAME_IS);
-     else
-        strcpy(DLL_name, MQREMOTE_NAME);
+    if (pEnvStr != NULL)
+      strcpy(DLL_name, MQREMOTE_NAME_IS);
+    else
+      strcpy(DLL_name, MQREMOTE_NAME);
   } /* endif */
 
- #if defined (ITS_WINDOWS)
+#if defined (ITS_WINDOWS)
 
   pLibrary = LoadLibraryA(DLL_name);
 
@@ -618,16 +585,15 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
 
   if (pLibrary)   /* did we find a DLL? */
   {
-
     /* tell the world what we found */
     sprintf(msg, "DLL %s loaded ok", DLL_name);
     cphLogPrintLn(pLog, LOG_INFO, msg);
 
-   /**********************************************************/
-   /* For the present we will assume that having found a dll */
-   /* it will have the things we need !!!!                   */
-   /* If it hasn't then code in gmqdyn0a.c will raise error  */
-   /**********************************************************/
+    /**********************************************************/
+    /* For the present we will assume that having found a dll */
+    /* it will have the things we need !!!!                   */
+    /* If it hasn't then code in gmqdyn0a.c will raise error  */
+    /**********************************************************/
 
     ep->mqconn   = (MQCONNPTR)  GetProcAddress(pLibrary,"MQCONN");
     ep->mqconnx  = (MQCONNXPTR) GetProcAddress(pLibrary,"MQCONNX");
@@ -646,18 +612,17 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
     ep->mqbufmh  = (MQBUFMHPTR) GetProcAddress(pLibrary,"MQBUFMH");
     ep->mqcrtmh  = (MQCRTMHPTR) GetProcAddress(pLibrary,"MQCRTMH");
     ep->mqdltmh  = (MQDLTMHPTR) GetProcAddress(pLibrary,"MQDLTMH");
+    ep->mqsetmp  = (MQSETMPPTR) GetProcAddress(pLibrary,"MQSETMP");
 #endif
 
-   rc = TRUE;     /* TRUE means it worked - dll was found */
-  }
-  else
-  {
+  rc = TRUE;     /* TRUE means it worked - dll was found */
+  } else {
     /* couldn't find a dll !!! */
 
     #if defined(ITS_WINDOWS)
-     #ifdef AMQ_NT    /* Win16 doesn't have GetLastError */
-     error = GetLastError();
-     #endif
+      #ifdef AMQ_NT    /* Win16 doesn't have GetLastError */
+        error = GetLastError();
+      #endif
     #endif
 
     sprintf(msg, "Cannot find lib - %s (error = %u)", DLL_name, error);
@@ -675,21 +640,21 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
 {
   long rc = 0;
   _SYSPTR handle = NULL;
-  char      DLL_name[80];
+  char DLL_name[80];
 
   /* first we looksee if user is telling us to load a specific library */
   if (0 == isClient)
   {
-     strcpy(DLL_name, MQLOCAL_NAME);
+    strcpy(DLL_name, MQLOCAL_NAME);
   }
   else
   {
-     char *pEnvStr = getenv("CPH_USE_INSTALLATION_SPECIFIC_CLIENT_LIBRARY");  /* get ptr to environment string */
+    char *pEnvStr = getenv("CPH_USE_INSTALLATION_SPECIFIC_CLIENT_LIBRARY");  /* get ptr to environment string */
 
-     if (pEnvStr != NULL)
-        strcpy(DLL_name, MQREMOTE_NAME_IS);
-     else
-        strcpy(DLL_name, MQREMOTE_NAME);
+    if (pEnvStr != NULL)
+      strcpy(DLL_name, MQREMOTE_NAME_IS);
+    else
+      strcpy(DLL_name, MQREMOTE_NAME);
   } /* endif */
 
   handle = rslvsp(WLI_SRVPGM,
@@ -706,47 +671,47 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
   }
   else
   {
-   /**********************************************************/
-   /* For the present we will assume that having found a dll */
-   /* it will have the things we need !!!!                   */
-   /**********************************************************/
-   int exptype, explen;
-   Qus_EC_t errorinfo;
-   unsigned long long  actmark;
-   Qle_ABP_Info_Long_t actinfo;
-   int actinfolen = sizeof(Qle_ABP_Info_t);
+    /**********************************************************/
+    /* For the present we will assume that having found a dll */
+    /* it will have the things we need !!!!                   */
+    /**********************************************************/
+    int exptype, explen;
+    Qus_EC_t errorinfo;
+    unsigned long long  actmark;
+    Qle_ABP_Info_Long_t actinfo;
+    int actinfolen = sizeof(Qle_ABP_Info_t);
 
-   errorinfo.Bytes_Provided = sizeof(Qus_EC_t);
-   errorinfo.Bytes_Available = 0;
+    errorinfo.Bytes_Provided = sizeof(Qus_EC_t);
+    errorinfo.Bytes_Available = 0;
 
-   QleActBndPgmLong(&handle, &actmark, &actinfo, &actinfolen, &errorinfo);
+    QleActBndPgmLong(&handle, &actmark, &actinfo, &actinfolen, &errorinfo);
 
-   explen = strlen("MQCONN"); QleGetExpLong(&actmark, 0, &explen, "MQCONN", &ep->mqconn, &exptype, &errorinfo);
-   explen = strlen("MQCONNX"); QleGetExpLong(&actmark, 0, &explen, "MQCONNX", &ep->mqconnx, &exptype, &errorinfo);
-   explen = strlen("MQDISC"); QleGetExpLong(&actmark, 0, &explen, "MQDISC", &ep->mqdisc, &exptype, &errorinfo);
-   explen = strlen("MQOPEN"); QleGetExpLong(&actmark, 0, &explen, "MQOPEN", &ep->mqopen, &exptype, &errorinfo);
-   explen = strlen("MQCLOSE"); QleGetExpLong(&actmark, 0, &explen, "MQCLOSE", &ep->mqclose, &exptype, &errorinfo);
-   explen = strlen("MQGET"); QleGetExpLong(&actmark, 0, &explen, "MQGET", &ep->mqget, &exptype, &errorinfo);
-   explen = strlen("MQPUT"); QleGetExpLong(&actmark, 0, &explen, "MQPUT", &ep->mqput, &exptype, &errorinfo);
-   explen = strlen("MQSET"); QleGetExpLong(&actmark, 0, &explen, "MQSET", &ep->mqset, &exptype, &errorinfo);
-   explen = strlen("MQPUT1"); QleGetExpLong(&actmark, 0, &explen, "MQPUT1", &ep->mqput1, &exptype, &errorinfo);
-   explen = strlen("MQBACK"); QleGetExpLong(&actmark, 0, &explen, "MQBACK", &ep->mqback, &exptype, &errorinfo);
-   explen = strlen("MQCMIT"); QleGetExpLong(&actmark, 0, &explen, "MQCMIT", &ep->mqcmit, &exptype, &errorinfo);
-   explen = strlen("MQINQ"); QleGetExpLong(&actmark, 0, &explen, "MQINQ", &ep->mqinq, &exptype, &errorinfo);
+    explen = strlen("MQCONN"); QleGetExpLong(&actmark, 0, &explen, "MQCONN", &ep->mqconn, &exptype, &errorinfo);
+    explen = strlen("MQCONNX"); QleGetExpLong(&actmark, 0, &explen, "MQCONNX", &ep->mqconnx, &exptype, &errorinfo);
+    explen = strlen("MQDISC"); QleGetExpLong(&actmark, 0, &explen, "MQDISC", &ep->mqdisc, &exptype, &errorinfo);
+    explen = strlen("MQOPEN"); QleGetExpLong(&actmark, 0, &explen, "MQOPEN", &ep->mqopen, &exptype, &errorinfo);
+    explen = strlen("MQCLOSE"); QleGetExpLong(&actmark, 0, &explen, "MQCLOSE", &ep->mqclose, &exptype, &errorinfo);
+    explen = strlen("MQGET"); QleGetExpLong(&actmark, 0, &explen, "MQGET", &ep->mqget, &exptype, &errorinfo);
+    explen = strlen("MQPUT"); QleGetExpLong(&actmark, 0, &explen, "MQPUT", &ep->mqput, &exptype, &errorinfo);
+    explen = strlen("MQSET"); QleGetExpLong(&actmark, 0, &explen, "MQSET", &ep->mqset, &exptype, &errorinfo);
+    explen = strlen("MQPUT1"); QleGetExpLong(&actmark, 0, &explen, "MQPUT1", &ep->mqput1, &exptype, &errorinfo);
+    explen = strlen("MQBACK"); QleGetExpLong(&actmark, 0, &explen, "MQBACK", &ep->mqback, &exptype, &errorinfo);
+    explen = strlen("MQCMIT"); QleGetExpLong(&actmark, 0, &explen, "MQCMIT", &ep->mqcmit, &exptype, &errorinfo);
+    explen = strlen("MQINQ"); QleGetExpLong(&actmark, 0, &explen, "MQINQ", &ep->mqinq, &exptype, &errorinfo);
 #ifndef CPH_WMQV6
-   explen = strlen("MQINQ"); QleGetExpLong(&actmark, 0, &explen, "MQINQ", &ep->mqsub, &exptype, &errorinfo);
-   explen = strlen("MQINQ"); QleGetExpLong(&actmark, 0, &explen, "MQINQ", &ep->mqbufmh, &exptype, &errorinfo);
-   explen = strlen("MQINQ"); QleGetExpLong(&actmark, 0, &explen, "MQINQ", &ep->mqcrtmh, &exptype, &errorinfo);
-   explen = strlen("MQINQ"); QleGetExpLong(&actmark, 0, &explen, "MQINQ", &ep->mqdltmh, &exptype, &errorinfo);
+    explen = strlen("MQSUB"); QleGetExpLong(&actmark, 0, &explen, "MQSUB", &ep->mqsub, &exptype, &errorinfo);
+    explen = strlen("MQBUFMH"); QleGetExpLong(&actmark, 0, &explen, "MQBUFMH", &ep->mqbufmh, &exptype, &errorinfo);
+    explen = strlen("MQCRTMH"); QleGetExpLong(&actmark, 0, &explen, "MQCRTMH", &ep->mqcrtmh, &exptype, &errorinfo);
+    explen = strlen("MQMQDLTMH"); QleGetExpLong(&actmark, 0, &explen, "MQDLTMH", &ep->mqdltmh, &exptype, &errorinfo);
+    explen = strlen("MQSETMP"); QleGetExpLong(&actmark, 0, &explen, "MQSETMP", &ep->mqsetmp, &exptype, &errorinfo);
 #endif
-       rc = 1; /* to show it worked */
+  rc = 1; /* to show it worked */
   }
 
   return rc;
 }
 
 #elif defined(CPH_UNIX)
-
 
 long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
 {
@@ -759,23 +724,23 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
   /* first we looksee if user is telling us to load a specific library */
   if (0 == isClient)
   {
-     strcpy(DLL_name, MQLOCAL_NAME);
+    strcpy(DLL_name, MQLOCAL_NAME);
   }
   else
   {
-     char *pEnvStr = getenv("CPH_USE_INSTALLATION_SPECIFIC_CLIENT_LIBRARY");  /* get ptr to environment string */
+    char *pEnvStr = getenv("CPH_USE_INSTALLATION_SPECIFIC_CLIENT_LIBRARY");  /* get ptr to environment string */
 
-     if (pEnvStr != NULL)
-        strcpy(DLL_name, MQREMOTE_NAME_IS);
-     else
-        strcpy(DLL_name, MQREMOTE_NAME);
+    if (pEnvStr != NULL)
+      strcpy(DLL_name, MQREMOTE_NAME_IS);
+    else
+      strcpy(DLL_name, MQREMOTE_NAME);
   } /* endif */
 
   pLibrary = (void *)dlopen(DLL_name,RTLD_NOW
 #if defined(_AIX)
-                             | RTLD_MEMBER
+  | RTLD_MEMBER
 #endif
-                             );
+  );
   if (!pLibrary) ErrorText = dlerror();
 
   if ( pLibrary == NULL )
@@ -789,36 +754,37 @@ long cphMQSplitterLoadMQ(CPH_LOG *pLog, Pmq_epList ep, int isClient)
   if (pLibrary)   /* did we find a DLL? */
   {
 
-   {  /* tell the world what we found */
+    {  /* tell the world what we found */
 
-    sprintf(buff, "Shared library %s loaded ok", DLL_name);
-    cphLogPrintLn(pLog, LOG_INFO, buff);
-   }
+      sprintf(buff, "Shared library %s loaded ok", DLL_name);
+      cphLogPrintLn(pLog, LOG_INFO, buff);
+    }
 
-   /**********************************************************/
-   /* For the present we will assume that having found a dll */
-   /* it will have the things we need !!!!                   */
-   /**********************************************************/
+    /**********************************************************/
+    /* For the present we will assume that having found a dll */
+    /* it will have the things we need !!!!                   */
+    /**********************************************************/
 
-       ep->mqconn   = (MQCONNPTR)   dlsym(pLibrary, "MQCONN");
-       ep->mqconnx  = (MQCONNXPTR)  dlsym(pLibrary, "MQCONNX");
-       ep->mqdisc   = (MQDISCPTR)   dlsym(pLibrary, "MQDISC");
-       ep->mqopen   = (MQOPENPTR)   dlsym(pLibrary, "MQOPEN");
-       ep->mqclose  = (MQCLOSEPTR)  dlsym(pLibrary, "MQCLOSE");
-       ep->mqget    = (MQGETPTR)    dlsym(pLibrary, "MQGET");
-       ep->mqput    = (MQPUTPTR)    dlsym(pLibrary, "MQPUT");
-       ep->mqset    = (MQSETPTR)    dlsym(pLibrary, "MQSET");
-       ep->mqput1   = (MQPUT1PTR)   dlsym(pLibrary, "MQPUT1");
-       ep->mqback   = (MQBACKPTR)   dlsym(pLibrary, "MQBACK");
-       ep->mqcmit   = (MQCMITPTR)   dlsym(pLibrary, "MQCMIT");
-       ep->mqinq    = (MQINQPTR)    dlsym(pLibrary, "MQINQ");
+    ep->mqconn   = (MQCONNPTR)   dlsym(pLibrary, "MQCONN");
+    ep->mqconnx  = (MQCONNXPTR)  dlsym(pLibrary, "MQCONNX");
+    ep->mqdisc   = (MQDISCPTR)   dlsym(pLibrary, "MQDISC");
+    ep->mqopen   = (MQOPENPTR)   dlsym(pLibrary, "MQOPEN");
+    ep->mqclose  = (MQCLOSEPTR)  dlsym(pLibrary, "MQCLOSE");
+    ep->mqget    = (MQGETPTR)    dlsym(pLibrary, "MQGET");
+    ep->mqput    = (MQPUTPTR)    dlsym(pLibrary, "MQPUT");
+    ep->mqset    = (MQSETPTR)    dlsym(pLibrary, "MQSET");
+    ep->mqput1   = (MQPUT1PTR)   dlsym(pLibrary, "MQPUT1");
+    ep->mqback   = (MQBACKPTR)   dlsym(pLibrary, "MQBACK");
+    ep->mqcmit   = (MQCMITPTR)   dlsym(pLibrary, "MQCMIT");
+    ep->mqinq    = (MQINQPTR)    dlsym(pLibrary, "MQINQ");
 #ifndef CPH_WMQV6
-       ep->mqsub    = (MQSUBPTR)    dlsym(pLibrary,"MQSUB");
-       ep->mqbufmh  = (MQBUFMHPTR)  dlsym(pLibrary,"MQBUFMH");
-       ep->mqcrtmh  = (MQCRTMHPTR)  dlsym(pLibrary,"MQCRTMH");
-       ep->mqdltmh  = (MQDLTMHPTR)  dlsym(pLibrary,"MQDLTMH");
+    ep->mqsub    = (MQSUBPTR)    dlsym(pLibrary,"MQSUB");
+    ep->mqbufmh  = (MQBUFMHPTR)  dlsym(pLibrary,"MQBUFMH");
+    ep->mqcrtmh  = (MQCRTMHPTR)  dlsym(pLibrary,"MQCRTMH");
+    ep->mqdltmh  = (MQDLTMHPTR)  dlsym(pLibrary,"MQDLTMH");
+    ep->mqsetmp  = (MQSETMPPTR)  dlsym(pLibrary,"MQSETMP");
 #endif
-       rc = 1; /* to show it worked */
+    rc = 1; /* to show it worked */
   }
   else
   {

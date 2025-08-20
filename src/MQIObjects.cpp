@@ -181,6 +181,10 @@ MQIObject::~MQIObject() {
     free(selectionString);
     selectionString = NULL;
   }
+    if (msgHandleSelector != NULL){
+    free(msgHandleSelector);
+    msgHandleSelector = NULL;
+  }
   CPHTRACEEXIT(pConn->pTrc)
 }
 
@@ -511,6 +515,7 @@ MQLONG MQIObject::get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
 * Will select on correlID if no custom selector is specified.
 */
 void MQIObject::createSelector(CPH_TRACE * pTrc, MQBYTE24 correlId, char * customSelector){
+  CPHTRACEENTRY(pTrc)
 
   //Assign selection string to custom selector or to memory
   selectionString = (customSelector == 0 ? (char *)malloc(MQ_SELECTOR_LENGTH) : customSelector);
@@ -527,15 +532,50 @@ void MQIObject::createSelector(CPH_TRACE * pTrc, MQBYTE24 correlId, char * custo
     strcat(selectionString, "\"");
   }
 
-  CPHTRACEENTRY(pTrc)
-    CPHTRACEMSG(pTrc, "Selection string: %s", selectionString);
-  CPHTRACEEXIT(pTrc)
+  CPHTRACEMSG(pTrc, "Selection string: %s", selectionString)
+  cphLogPrintLn(pConn->pLog, LOG_VERBOSE, "Using selection string:");
+  cphLogPrintLn(pConn->pLog, LOG_VERBOSE, selectionString);
 
   od.SelectionString.VSPtr = selectionString;
   od.SelectionString.VSLength = (MQLONG) strlen(selectionString);
   od.SelectionString.VSBufSize = MQ_SELECTOR_LENGTH;
   od.SelectionString.VSOffset = 0;
   od.SelectionString.VSCCSID = MQCCSI_APPL;
+  CPHTRACEEXIT(pTrc)
+}
+
+/*
+* Method: createMsgHandleSelector
+* ----------------------
+*
+* Creates the selection string in the object descriptor to match on the generated correlationID set in RFH2 header
+* Will select on all 24 bytes of correlId.
+*/
+void MQIObject::createMsgHandleSelector(CPH_TRACE * pTrc, MQBYTE24 correlId) {
+  CPHTRACEENTRY(pTrc)
+
+  #define MSG_HANDLE_SELECTOR_LEN 40
+  #define STR_CORRELID_OPEN_LEN 12
+  #define STR_CORRELID_CLOSE_LEN 4
+
+  char msgHandleOut[MSG_HANDLE_SELECTOR_LEN+1];
+  memset(msgHandleOut, 0, MSG_HANDLE_SELECTOR_LEN+1);
+
+  msgHandleSelector = (char *) malloc(MSG_HANDLE_SELECTOR_LEN);
+  memcpy(msgHandleSelector, "correlid = '", STR_CORRELID_OPEN_LEN);
+  memcpy(msgHandleSelector + STR_CORRELID_OPEN_LEN, correlId, sizeof(MQBYTE24));
+  memcpy(msgHandleSelector + STR_CORRELID_OPEN_LEN + sizeof(MQBYTE24), "'   ", STR_CORRELID_CLOSE_LEN);
+  memcpy(msgHandleOut, msgHandleSelector, MSG_HANDLE_SELECTOR_LEN);
+  CPHTRACEMSG(pTrc, "MsgHandleSelector: %s", msgHandleOut);
+  cphLogPrintLn(pConn->pLog, LOG_VERBOSE, "Using message handle selector:");
+  cphLogPrintLn(pConn->pLog, LOG_VERBOSE, msgHandleOut);
+
+  od.SelectionString.VSPtr = msgHandleSelector;
+  od.SelectionString.VSLength = MSG_HANDLE_SELECTOR_LEN;
+  od.SelectionString.VSBufSize = MQ_SELECTOR_LENGTH;
+  od.SelectionString.VSOffset = 0;
+  od.SelectionString.VSCCSID = MQCCSI_APPL;
+  CPHTRACEEXIT(pTrc)
 }
 
 

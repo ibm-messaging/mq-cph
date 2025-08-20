@@ -48,9 +48,8 @@ MQWTCLASSDEF(PublisherV6,
 
 MQWTCLASSDEF(SubscriberV6,
   static bool unsubscribe;
-static char streamQName[MQ_Q_NAME_LENGTH];
+  static char streamQName[MQ_Q_NAME_LENGTH];
 
-  MQBYTE24 correlId;
   MQIQueue * pControlQueue;
   MQIQueue * pSubscriberQueue;
 

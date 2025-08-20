@@ -97,20 +97,28 @@ void MQIWorkerThread::openSession(){
 
   pConnection = new MQIConnection(this, false);
 
-  if(putter){
-    putMD = pOpts->getPutMD();
-    if(pOpts->useMessageHandle){
-      MQLONG rfh2Len;
-      char * rfh2Buf = cphBuildRFH2(&rfh2Len);
-      putMsgHandle = pConnection->createPutMessageHandle(&putMD, rfh2Buf, rfh2Len);
-      pmo.OriginalMsgHandle = putMsgHandle;
-    }
-  }
-
   if(getter && pOpts->useMessageHandle){
     getMsgHandle = pConnection->createGetMessageHandle();
     gmo.Version = MQGMO_VERSION_4;
     gmo.MsgHandle = getMsgHandle;
+    gmo.Options |= MQGMO_PROPERTIES_FORCE_MQRFH2;
+  }
+
+  if(putter){
+    putMD = pOpts->getPutMD();
+    if(pOpts->useMessageHandle) {
+      if (strcmp(this->className.data(), "Responder") == 0) {
+        // Responder - Dont invoke createPutMessageHandle, just associated messagehandle from get with pmo
+        // This allows us to propogate the message properties in the reply message
+        pmo.OriginalMsgHandle = getMsgHandle;
+      } else {
+        // Create putMsgHandle and populate RFH2
+        MQLONG rfh2Len;
+        char * rfh2Buf = cphBuildRFH2(&rfh2Len, correlId);
+        putMsgHandle = pConnection->createPutMessageHandle(&putMD, rfh2Buf, rfh2Len);
+        pmo.OriginalMsgHandle = putMsgHandle;
+      }
+    }
   }
 
   openDestination();
@@ -190,40 +198,56 @@ static inline uint32_t getCorrelIdBase(CPH_TRACE * pTrc){
 void MQIWorkerThread::generateCorrelID(MQBYTE24 & correlId, char const * const procId){
   CPHTRACEENTRY(pConfig->pTrc)
 
-  memset(correlId, 0, sizeof(MQBYTE24));
   char localproc[80];
   char procPart[24];
+  char destCorrelId[25];
   size_t procIdLen = strlen(procId);
 
+  memset(correlId, 0, sizeof(MQBYTE24));
   strcpy(localproc, procId);
+
   if (procIdLen == 0){
+    // If no id provided, create the initial part of the correlationID
+    // The problem with how this function worked originally is that using snprintf or sprintf
+    // a null is added within the formatted output, which causes a problem when trying to use the
+    // correlationID as a selector (SYNTAX ERROR)
+    // Now going to format it into a char[25] array and then copy the valid 24 characters into the MQBYTE24 array
     static uint32_t correlIdBase = getCorrelIdBase(pConfig->pTrc);
-    if (name.length() > 14) {
-       snprintf((char*)correlId, 24, "%x-%s", correlIdBase, name.substr(name.length() - 15, 14).data());
-	} else {
-        snprintf((char*)correlId, 24, "%x-%s", correlIdBase, name.data());
-	}
-  }
-  else {
+
+    if (name.length() > 15) {
+      snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, name.substr(name.length() - 15, 15).data());
+      memcpy(correlId, destCorrelId, 24);
+    } else {
+      snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, name.data());
+      memcpy(correlId, destCorrelId, 24);
+    }
+  } else {
+    // We have a process ID provided; were going to format this into the same format as the generated ID above
+    // with 8chars-15chars and use the least significant digits (as these are more likely to change). Spaces
+    // will be used to pad either end of the array if required
     string adjustedName;
     //Additional code added to avoid potentially dangling pointer of temporary value returned from substr
-	if (name.length() > 18) { 
-	   adjustedName = name.substr(name.length() - 19, 18);
-	} else {
-	   adjustedName = name;
-	}
-	char const * const threadPart = adjustedName.data();
-	
-	size_t remaining = 22 - strlen(threadPart);
-	if (procIdLen > remaining) {
-	  strncpy(procPart, &localproc[procIdLen - remaining], remaining);
-	  procPart[remaining] = '\0';
-	  sprintf((char*)correlId, "%s-%s", procPart, threadPart);
-	} else {
-      sprintf((char*)correlId, "%s-%s", procId, threadPart);
-	}
+    if (name.length() > 15) {
+      adjustedName = name.substr(name.length() - 15, 15);
+    } else {
+      adjustedName = name;
+    }
+	  char const * const threadPart = adjustedName.data();
+
+    // Trim procId to 8 chars if required
+    if (procIdLen > 8) {
+      strncpy(procPart, &localproc[procIdLen - 8], 8);
+      procPart[8] = '\0';
+      sprintf(destCorrelId, "%8s-%-15s", procPart, threadPart);
+      memcpy(correlId, destCorrelId, 24);
+    } else {
+      sprintf(destCorrelId, "%8s-%-15s", procId, threadPart);
+      memcpy(correlId, destCorrelId, 24);
+    }
   }
-  CPHTRACEMSG(pConfig->pTrc, "CorrelID: %s", (char*)correlId)
+  CPHTRACEMSG(pConfig->pTrc, "CorrelID: %s", destCorrelId)
+  cphLogPrintLn(pConfig->pLog, LOG_VERBOSE, "Generated CorrelID:");
+  cphLogPrintLn(pConfig->pLog, LOG_VERBOSE, destCorrelId);
   CPHTRACEEXIT(pConfig->pTrc)
 }
 

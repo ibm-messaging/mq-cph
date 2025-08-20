@@ -81,6 +81,8 @@ public:
 
   MQHMSG createPutMessageHandle(MQMD* md, char* propsBuffer, MQLONG bufferLength) const;
   MQHMSG createGetMessageHandle() const;
+  void setMessageProperties(MQHMSG messageHandle, MQCHARV* vs, MQPD* pd, MQLONG valuelen, char* value) const;
+
   void destroyMessageHandle(MQHMSG& handle) const;
 
   void commitTransaction() const;
@@ -144,6 +146,7 @@ public:
 class MQIObject {
   friend class MQIConnection;
   char * selectionString;
+  char * msgHandleSelector;
 protected:
   /*The MQHCONN used to create this object.*/
   MQIConnection const * const pConn;
@@ -173,13 +176,14 @@ public:
   void setQMName(char const * const format, ...);
   void setQMName(MQCHAR48 const * qmName);
 
-  void put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);  
+  void put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);
   MQLONG put_try(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);
   void put1(MQIMessage const * const msg, MQMD& md, MQPMO& pmo);
-  void get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const;  
+  void get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const;
   MQLONG get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const;
 
   void createSelector(CPH_TRACE * pTrc, MQBYTE24 correlId, char * customSelector);
+  void createMsgHandleSelector(CPH_TRACE * pTrc, MQBYTE24 correlId);
 
 };
 

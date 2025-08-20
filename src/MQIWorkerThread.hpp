@@ -100,6 +100,9 @@ protected:
   /*Get message options.*/
   MQGMO gmo;
 
+  /*The correlId to associate with messages.*/
+  MQBYTE24 correlId;
+
   void generateCorrelID(MQBYTE24 & correlId, char const * const procId);
 
   virtual void openSession();

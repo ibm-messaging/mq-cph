@@ -50,8 +50,6 @@ MQWTCLASSDEF(PutGet,
 
   /*The queue to put/get to/from.*/
   MQIQueue * pQueue;
-  /*The correlId to associate with messages.*/
-  MQBYTE24 correlId;
 )
 
 }

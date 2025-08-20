@@ -694,44 +694,47 @@ char *cphUtilMakeBigStringWithRFH2(int size, size_t *pRfh2Len) {
 }
 
 /*
-** Method: cphUtilMakeBigStringWithRFH2
+** Method: cphBuildRFH2
 **
-** Function to build a string of a given size, plus an additional RFH2.
-** This is used to build the message contents to be published. The
+** Function to build an RFH2 header
+** This is used to build an RFH2 header containing a message property which will be used when selecting the message
 ** string is allocated with malloc and needs to be disposed of by the caller.
 **
-** Input Parameters: size - the length of the string to build
+** Ouput Parameters: pSize - the length of the returned RFH2 header
 **
 ** Returns: a pointer to the built character string
 **
 */
-char *cphBuildRFH2(MQLONG *pSize) {
+char *cphBuildRFH2(MQLONG *pSize, MQBYTE24 correlationID) {
 
     char *str = NULL;
+    char *str2 = NULL;
     char *ptr = NULL;
     MQRFH2 rfh2 = {MQRFH2_DEFAULT};
     MQLONG rfh2Len;
 
-#define RFH2_NAME_VALUE_DATA_LENGTH_1 32
-#define RFH2_NAME_VALUE_DATA_LENGTH_2 144
+    // Length of user properties, padded to make header divisible by 4
+    #define RFH2_USR_CORRELID_OPEN_LEN 15
+    #define RFH2_USR_CORRELID_TOTAL 60
+    #define RFH2_USR_CORRELID_CLOSE_LEN 21
 
-    rfh2Len = sizeof(MQRFH2) + sizeof(MQLONG) + RFH2_NAME_VALUE_DATA_LENGTH_1 + sizeof(MQLONG)+ RFH2_NAME_VALUE_DATA_LENGTH_2;
+    rfh2Len = sizeof(MQRFH2) + sizeof(MQLONG) + RFH2_USR_CORRELID_TOTAL;
     rfh2.StrucLength = rfh2Len;
     rfh2.CodedCharSetId = 1208;
     memcpy(rfh2.Format, "MQSTR    ", MQ_FORMAT_LENGTH);
     rfh2.NameValueCCSID = 1208;
 
     if (NULL != (ptr = (char*) malloc(rfh2Len))) {
-       str = ptr;
-       memcpy(str, &rfh2, sizeof(MQRFH2));
-       str += sizeof(MQRFH2);
-       *((MQLONG *)str) = RFH2_NAME_VALUE_DATA_LENGTH_1;
-       str += sizeof(MQLONG);
-       memcpy(str, "<mcd><Msd>jms_text</Msd></mcd>  ", RFH2_NAME_VALUE_DATA_LENGTH_1);
-       str += RFH2_NAME_VALUE_DATA_LENGTH_1;
-       *((MQLONG *)str) = RFH2_NAME_VALUE_DATA_LENGTH_2;
-       str += sizeof(MQLONG);
-       memcpy(str, "<jms><Dst>topic://TOPIC1</Dst><Tms>1207047258454</Tms><Dlv>1</Dlv><Uci dt='bin.hex'>414D51435A4D53504552463420202020CDF7F147011B0020</Uci></jms>", RFH2_NAME_VALUE_DATA_LENGTH_2);
+      str = ptr;
+      memcpy(str, &rfh2, sizeof(MQRFH2));
+      str += sizeof(MQRFH2);
+      *((MQLONG *)str) = RFH2_USR_CORRELID_TOTAL;
+      str += sizeof(MQLONG);
+      memcpy(str, "<usr><correlid>", RFH2_USR_CORRELID_OPEN_LEN);
+      str += RFH2_USR_CORRELID_OPEN_LEN;
+      memcpy(str, correlationID, sizeof(MQBYTE24));
+      str += sizeof(MQBYTE24);
+      memcpy(str, "</correlid></usr>    ", RFH2_USR_CORRELID_CLOSE_LEN);
     }
 
     *pSize = rfh2Len;

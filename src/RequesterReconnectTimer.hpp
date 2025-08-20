@@ -61,9 +61,7 @@ MQWTCLASSDEF(RequesterReconnectTimer,
   MQIObject * pInQueue;
   /*The queue to get from.*/
   MQIObject * pOutQueue;
-  /*The correlId to associate with messages. This is only needed for when we are using message selectors*/
-  MQBYTE24 correlId;
-  
+
   CPH_TIME reconnectStart;
   long reconnectTime_ms;
   char messageString[512];

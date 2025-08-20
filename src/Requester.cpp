@@ -111,7 +111,11 @@ void Requester::openDestination(){
   pOutQueue = new MQIQueue(pConnection, false, true);
   CPH_DESTINATIONFACTORY_CALL_PRINTF(pOutQueue->setName, oqPrefix, destinationIndex)
   if (useSelector){
-    pOutQueue->createSelector(pConfig->pTrc, correlId, useCustomSelector ? customSelector : NULL);
+    if(pOpts->useMessageHandle) {
+      pOutQueue->createMsgHandleSelector(pConfig->pTrc, correlId);
+    } else {
+      pOutQueue->createSelector(pConfig->pTrc, correlId, useCustomSelector ? customSelector : NULL);
+    }
   }
   pOutQueue->open(true);
 
