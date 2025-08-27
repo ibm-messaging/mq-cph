@@ -708,7 +708,6 @@ char *cphUtilMakeBigStringWithRFH2(int size, size_t *pRfh2Len) {
 char *cphBuildRFH2(MQLONG *pSize, MQBYTE24 correlationID) {
 
     char *str = NULL;
-    char *str2 = NULL;
     char *ptr = NULL;
     MQRFH2 rfh2 = {MQRFH2_DEFAULT};
     MQLONG rfh2Len;
