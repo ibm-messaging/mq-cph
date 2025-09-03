@@ -65,8 +65,14 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
   //long reconnectTime_ms=0;
 
   cno = pOpts->getCNO();
-  cno.Version = MQCNO_VERSION_7;
-  strcpy(cno.ApplName, name);
+
+  // If application name hasnt already been set, use thread name
+  #if MQCNO_CURRENT_VERSION > 6
+  if (cno.ApplName[0] == ' ') {
+    cno.Version = MQCNO_VERSION_7;
+    strcpy(cno.ApplName, name);
+  }
+  #endif
 
   if(pOpts->connType==REMOTE && !pOpts->useChannelTable){
     snprintf(msg+strlen(msg), CPH_MQC_MSG_LEN-strlen(msg), " (connection: %s; channel: %s)\n", ((MQCD*) cno.ClientConnPtr)->ConnectionName, ((MQCD*) cno.ClientConnPtr)->ChannelName);
