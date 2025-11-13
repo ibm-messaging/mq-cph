@@ -1,4 +1,4 @@
-/*<copyright notice="lm-source" pids="" years="2007,2021">*/
+/*<copyright notice="lm-source" pids="" years="2007,2025">*/
 /*******************************************************************************
  * Copyright (c) 2007,2021 IBM Corp.
  *
@@ -214,7 +214,7 @@ int cphTraceLine(CPH_TRACE *pTrace, CPH_TRACETHREAD *pTraceThread) {
 
     cphUtilGetTraceTime(chTime);
 #if defined(CPH_UNIX)
-    fprintf(pTrace->tFp, "%s\t%lu%*s%s\n", chTime, pTraceThread->threadId, pTraceThread->indent+1, " ", pTraceThread->buffer);
+    fprintf(pTrace->tFp, "%s\t%lu%*s%s\n", chTime, (unsigned long)pTraceThread->threadId, pTraceThread->indent+1, " ", pTraceThread->buffer);
 #else
     fprintf(pTrace->tFp, "%s\t%d%*s%s\n", chTime, pTraceThread->threadId, pTraceThread->indent+1, " ", pTraceThread->buffer);
 #endif

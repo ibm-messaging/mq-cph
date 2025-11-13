@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2022">*/
+/*<copyright notice="lm-source" pids="" years="2014,2025">*/
 /*******************************************************************************
- * Copyright (c) 2014,2022 IBM Corp.
+ * Copyright (c) 2014,2025 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ public:
   long minLatency;
   long maxLatency;
   long avgLatency;
-  
+
   StatsThread(ControlThread const * const pControlThread, unsigned int const interval, bool collectLatencyStatsIn) :
       Thread(pControlThread->pConfig),
       pControlThread(pControlThread), statsInterval(interval) {
@@ -162,7 +162,7 @@ protected:
         curr = temp;
         running = pControlThread->getThreadStats(*curr);
         endTime = cphUtilGetNow();
-        
+
         /*We just collect latency stats for thread 0 right now*/
         if(collectLatencyStats) {
            pControlThread->getThreadLatencyStats(latencyStats,0);
@@ -208,7 +208,8 @@ protected:
         cphLogPrintLn(pLog, LOG_INFO, ss2.str().data());
 
       }
-    } catch (ShutdownException) {
+    } catch (ShutdownException &e) {
+      (void)e;
       CPHTRACEMSG(pTrc, "Stats thread shutdown received.");
     }
 
@@ -381,9 +382,9 @@ void ControlThread::run() {
       configError(pConfig, "(wt) Could not determine worker thread start timeout.");
     CPHTRACEMSG(pTrc, "Number of seconds to wait for worker thread to start: %u.", threadStartTimeout)
 
-      if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &runLength, "rl"))
-        configError(pConfig, "(rl) Could not determine run length");
-      CPHTRACEMSG(pTrc, "Run length: %us.", runLength)
+    if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &runLength, "rl"))
+      configError(pConfig, "(rl) Could not determine run length");
+    CPHTRACEMSG(pTrc, "Run length: %us.", runLength)
 
     // Create worker threads (but don't start them).
     workers.reserve(numWorkers);
@@ -423,10 +424,10 @@ void ControlThread::run() {
       CPHTRACEMSG(pTrc, "Sleeping for %ums...", duration)
       cphUtilSleep(duration);
       if (cphControlCInvoked != 0) {
-    	  sprintf(tempStr, "cphControlCInvoked flag triggered: %d - Signal detected", cphControlCInvoked);
+        sprintf(tempStr, "cphControlCInvoked flag triggered: %d - Signal detected", cphControlCInvoked);
           cphLogPrintLn(pLog, LOG_ERROR, tempStr);
           CPHTRACEMSG(pTrc, tempStr)
-    	  throw ShutdownException();
+        throw ShutdownException();
       }
 
       remaining = (long) runLength - cphUtilGetTimeDifference(cphUtilGetNow(), startTime);
@@ -438,7 +439,8 @@ void ControlThread::run() {
     if(runningWorkers>0)
       cphLogPrintLn(pLog, LOG_VERBOSE, "Timer : Runlength expired" );
 
-  } catch (ShutdownException) {
+  } catch (ShutdownException &e) {
+    (void)e;
     cphLogPrintLn(pLog, LOG_ERROR, "Caught shutdown exception." );
     CPHTRACEMSG(pTrc, "Caught shutdown exception.")
   } catch (std::exception &e) {
@@ -491,7 +493,7 @@ void ControlThread::run() {
     CPHTRACEMSG(pTrc, "Using approximate value of end time")
     endTime = approxEndTime;
   }
-  
+
   if(doFinalSummary) {
     double duration = cphUtilGetDoubleDuration(startTime, endTime);
 
@@ -499,7 +501,7 @@ void ControlThread::run() {
         "totalIterations=%u,totalSeconds=%.2f,avgRate=%.2f",
         iterations, duration, (double)iterations/duration);
     cphLogPrintLn(pLog, LOG_WARNING, tempStr);
-    
+
     if(pStatsThread != NULL && collectLatencyStats){
       sprintf(tempStr,
          "avg_latency(uSec)=%ld,max_latency(uSec)=%ld,min_latency(uSec)=%ld",
@@ -508,9 +510,9 @@ void ControlThread::run() {
          pStatsThread->minLatency);
       cphLogPrintLn(pLog, LOG_WARNING, tempStr);
     }
-    
+
   }
-  
+
   cphLogPrintLn(pLog, LOG_VERBOSE, "controlThread STOP");
 
   if(exceptionCaught)

@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2021">*/
+/*<copyright notice="lm-source" pids="" years="2014,2025">*/
 /*******************************************************************************
- * Copyright (c) 2014,2021 IBM Corp.
+ * Copyright (c) 2014,2025 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,13 +189,13 @@ static inline uint32_t getCorrelIdBase(CPH_TRACE * pTrc){
  * So, in an attempt to improve in the situation, we use one of 2 methods here:
  *
  *  > If a unique identifier has been provided to the process via the 'id' command line option,
- *    then we generate the correlId from this and the WorkerThread name.
+ *    then we generate the correlation Id, genCorrelId, from this and the WorkerThread name.
  *    This is the preferred option.
  *
  *  > For compatibility with older test configurations, if no 'id' is provided,
  *    then we generate a single random id for the process, and append the WorkerThread name.
  */
-void MQIWorkerThread::generateCorrelID(MQBYTE24 & correlId, char const * const procId){
+void MQIWorkerThread::generateCorrelID(MQBYTE24 & genCorrelId, char const * const procId){
   CPHTRACEENTRY(pConfig->pTrc)
 
   char localproc[80];
@@ -203,7 +203,7 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & correlId, char const * const p
   char destCorrelId[25];
   size_t procIdLen = strlen(procId);
 
-  memset(correlId, 0, sizeof(MQBYTE24));
+  memset(genCorrelId, 0, sizeof(MQBYTE24));
   strcpy(localproc, procId);
 
   if (procIdLen == 0){
@@ -216,10 +216,10 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & correlId, char const * const p
 
     if (name.length() > 15) {
       snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, name.substr(name.length() - 15, 15).data());
-      memcpy(correlId, destCorrelId, 24);
+      memcpy(genCorrelId, destCorrelId, 24);
     } else {
       snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, name.data());
-      memcpy(correlId, destCorrelId, 24);
+      memcpy(genCorrelId, destCorrelId, 24);
     }
   } else {
     // We have a process ID provided; were going to format this into the same format as the generated ID above
@@ -239,10 +239,10 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & correlId, char const * const p
       strncpy(procPart, &localproc[procIdLen - 8], 8);
       procPart[8] = '\0';
       sprintf(destCorrelId, "%8s-%-15s", procPart, threadPart);
-      memcpy(correlId, destCorrelId, 24);
+      memcpy(genCorrelId, destCorrelId, 24);
     } else {
       sprintf(destCorrelId, "%8s-%-15s", procId, threadPart);
-      memcpy(correlId, destCorrelId, 24);
+      memcpy(genCorrelId, destCorrelId, 24);
     }
   }
   CPHTRACEMSG(pConfig->pTrc, "CorrelID: %s", destCorrelId)

@@ -103,7 +103,7 @@ protected:
   /*The correlId to associate with messages.*/
   MQBYTE24 correlId;
 
-  void generateCorrelID(MQBYTE24 & correlId, char const * const procId);
+  void generateCorrelID(MQBYTE24 & genCorrelId, char const * const procId);
 
   virtual void openSession();
   virtual void closeSession();

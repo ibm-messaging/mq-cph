@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2021">*/
+/*<copyright notice="lm-source" pids="" years="2014,2025">*/
 /*******************************************************************************
- * Copyright (c) 2014,2021 IBM Corp.
+ * Copyright (c) 2014,2025 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -223,7 +223,8 @@ void WorkerThread::run(){
         pace();
       }
     }
-  } catch (ShutdownException){
+  } catch (ShutdownException &e){
+    (void)e;
     /*Ignore - closeSession & exit*/
     CPHTRACEMSG(pConfig->pTrc, "Caught Thread::ShutdownException.")
 
@@ -262,21 +263,21 @@ void WorkerThread::run(){
 
 inline bool WorkerThread::doOneIteration(unsigned int& its){
   if(shutdown) return false;
-  
+
   if(collectLatencyStats) latencyStartTime = cphUtilGetNow();
   oneIteration();
 
   if(collectLatencyStats) {
      latencyStopTime = cphUtilGetNow();
-     latency=cphUtilGetUsTimeDifference(latencyStopTime,latencyStartTime);  
+     latency=cphUtilGetUsTimeDifference(latencyStopTime,latencyStartTime);
      //printf("Latency: %d\n",latency);
      if(latency > maxLatency)maxLatency= latency;
      if(latency < minLatency)minLatency= latency;
-     if(latencyIter == 0){ 
-	    avgLatency = latency; 
+     if(latencyIter == 0){
+	    avgLatency = latency;
      } else {
 	    avgLatency = ((avgLatency * latencyIter) + latency) / (latencyIter+1);
-     } 	  
+     }
      latencyIter++;
   }
   iterations++;
@@ -554,7 +555,7 @@ void WorkerThread::setCollectLatencyStats(bool flag) {
  * Method: getLatencyStats
  *
  * This method returns the current values for avgLatency, maxLatency and minLatency
- * then resets them. 
+ * then resets them.
  *
  */
 void WorkerThread::getLatencyStats(long statsArray[]) {

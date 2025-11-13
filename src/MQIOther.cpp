@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2022">*/
+/*<copyright notice="lm-source" pids="" years="2014,2025">*/
 /*******************************************************************************
- * Copyright (c) 2014,2022 IBM Corp.
+ * Copyright (c) 2014,2025 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
 		rc = 0;
 	  try {
 	    CPHCALLMQ(pTrc, MQCONNX, (PMQCHAR) pOpts->QMName, &cno, &hConn)
-	  } catch (cph::MQIException e) {
+	  } catch (cph::MQIException &e) {
 	    cc = e.compCode;
 		  rc = e.reasonCode;
     }
@@ -101,7 +101,7 @@ MQIConnection::MQIConnection(MQIWorkerThread * const pOwner, bool reconnect) :
 		 //reconnectTime_ms = cphUtilGetTimeDifference(cphUtilGetNow(),reconnectStart);
    	     //if(pOwner->threadNum==0){
 		 //   cphConfigGetString(pOwner->pConfig, procId, sizeof(procId), "id");
-   	     //   printf("[%s][%s]====cc: %i;  rc: %i===== Response time: %ld\n",procId,name,cc,rc,reconnectTime_ms);	
+   	     //   printf("[%s][%s]====cc: %i;  rc: %i===== Response time: %ld\n",procId,name,cc,rc,reconnectTime_ms);
 		 //}
 	  } while(cc != 0);
   }
@@ -116,7 +116,8 @@ MQIConnection::~MQIConnection() {
     cphLogPrintLn(pLog, LOG_VERBOSE, msg);
     try {
       CPHCALLMQ(pTrc, MQDISC, &hConn)
-    } catch (cph::MQIException) {
+    } catch (cph::MQIException &e) {
+      (void)e;
       CPHTRACEMSG(pTrc, "OOPS! MQIException in ~MQIConnection()!")
     }
   }
@@ -204,7 +205,7 @@ MQLONG MQIConnection::commitTransaction_try() const{
 	MQLONG rc =0;
   try {
     CPHCALLMQ(pTrc, MQCMIT, hConn)
-  } catch (cph::MQIException e) {
+  } catch (cph::MQIException &e) {
     rc = e.reasonCode;
   }
   CPHTRACEEXIT(pTrc)
@@ -264,8 +265,11 @@ MQIMessage::MQIMessage(size_t size) :
 MQIMessage::MQIMessage(MQIOpts const * const pOpts, bool empty) {
   if(empty) {
     bufferLen = pOpts->receiveSize;
-    if(NULL == (buffer = (MQBYTE*) malloc(bufferLen)))
+    if(NULL == (buffer = (MQBYTE*) malloc(bufferLen))) {
       throw runtime_error("Could not allocate message buffer.");
+    } else {
+      memset(buffer, 0, bufferLen);
+    }
   } else if(strcmp(pOpts->messageFile,"") != 0) {
     buffer = (MQBYTE*) cphUtilReadMsgFile(&messageLen, pOpts->messageFile);
     if(buffer == NULL) {
@@ -327,18 +331,18 @@ inline string getErrorMsg(string functionName, MQLONG compCode, MQLONG reasonCod
       len += snprintf(newId + len, MQ_CORREL_ID_LENGTH, "%02X", static_cast<unsigned>(castedId[i]));
     }
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]" << " -correlId: " << newId << " QName: " << qName;
-    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld] CorrelId:%s QName:%s\n", &functionName[0], compCode, reasonCode, newId, qName);
+    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %d; Reason code: %d] CorrelId:%s QName:%s\n", &functionName[0], compCode, reasonCode, newId, qName);
 
   } else {
     //ss << "Call to " << functionName << " failed [Completion code: " << compCode << "; Reason code: " << reasonCode << "]";
-    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %ld; Reason code: %ld]\n", &functionName[0], compCode, reasonCode);
+    snprintf(errorMsg, 512, "Call to %s failed [Completion code: %d; Reason code: %d]\n", &functionName[0], compCode, reasonCode);
   }
   if(printDetails){
 	  printf("Created Error message to pass to runtime_error()\n");
-	  printf(errorMsg);
+	  printf("%s", errorMsg);
 
 	  fprintf(stderr, "Sending errorMsg to STDERR\n");
-	  fprintf(stderr, errorMsg);
+	  fprintf(stderr, "%s", errorMsg);
   }
   return errorMsg;
 }

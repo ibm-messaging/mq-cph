@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2014,2021">*/
+/*<copyright notice="lm-source" pids="" years="2014,2025">*/
 /*******************************************************************************
- * Copyright (c) 2014,2021 IBM Corp.
+ * Copyright (c) 2014,2025 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,6 +165,7 @@ MQIObject::MQIObject(MQIConnection const * const pConnection, MQLONG type, bool 
   od.Version = MQOD_VERSION_4;
   od.ObjectType = type;
   selectionString = NULL;
+  msgHandleSelector = NULL;
   CPHTRACEEXIT(pConn->pTrc)
 }
 
@@ -173,7 +174,8 @@ MQIObject::~MQIObject() {
   if(hObj!=MQHO_NONE && hObj!=MQHO_UNUSABLE_HOBJ){
     try {
       CPHCALLMQ(pConn->pTrc, MQCLOSE, pConn->hConn, &hObj, MQCO_NONE)
-    } catch (cph::MQIException) {
+    } catch (cph::MQIException &e) {
+      (void)e;
       CPHTRACEMSG(pConn->pTrc, "OOPS! MQIException in ~MQIObject()!")
     }
   }
@@ -290,7 +292,7 @@ void MQIObject::put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo) {
   if(pConn->pOpts->put1)
     put1(msg, md, pmo);
   else if(hObj!=MQHO_NONE && hObj!=MQHO_UNUSABLE_HOBJ){
-    CPHTRACEMSG(pConn->pTrc, "Putting message:\n[%s]", msg->buffer)
+    CPHTRACEMSG(pConn->pTrc, "Putting message:\n[%.*s]", msg->bufferLen ,msg->buffer)
     CPHCALLMQ(pConn->pTrc, MQPUT, pConn->hConn, hObj, &md, &pmo, msg->messageLen, msg->buffer)
   } else
     throw logic_error("Cannot put to non-open object handle if put1 is not specified.");
@@ -306,23 +308,23 @@ void MQIObject::put(MQIMessage const * const msg, MQMD& md, MQPMO& pmo) {
  */
 MQLONG MQIObject::put_try(MQIMessage const * const msg, MQMD& md, MQPMO& pmo) {
   CPHTRACEENTRY(pConn->pTrc)
-  MQLONG rc=0;  
+  MQLONG rc=0;
   if(!canPut)
     throw logic_error("An attempt was made to put to an MQ object that was not open for output.");
   if(pConn->pOpts->put1)
     put1(msg, md, pmo);
   else if(hObj!=MQHO_NONE && hObj!=MQHO_UNUSABLE_HOBJ){
-    CPHTRACEMSG(pConn->pTrc, "Putting message:\n[%s]", msg->buffer)
-	try{		
-       CPHCALLMQ(pConn->pTrc, MQPUT, pConn->hConn, hObj, &md, &pmo, msg->messageLen, msg->buffer)
-    } catch (cph::MQIException e){
-	   rc = e.reasonCode;
-    } 
+    CPHTRACEMSG(pConn->pTrc, "Putting message:\n[%.*s]", msg->bufferLen, msg->buffer)
+    try{
+      CPHCALLMQ(pConn->pTrc, MQPUT, pConn->hConn, hObj, &md, &pmo, msg->messageLen, msg->buffer)
+    } catch (cph::MQIException &e){
+      rc = e.reasonCode;
+    }
   } else
     throw logic_error("Cannot put to non-open object handle if put1 is not specified.");
 
   CPHTRACEEXIT(pConn->pTrc)
-  return rc; 
+  return rc;
 }
 
 
@@ -384,7 +386,7 @@ void MQIObject::get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
       // v Keep going v
 
     case MQRC_NONE:
-      CPHTRACEMSG(pConn->pTrc, "Got message:\n[%s]", msg->buffer)
+      CPHTRACEMSG(pConn->pTrc, "Got message:\n[%.*s]", msg->bufferLen, msg->buffer)
       CPHTRACEEXIT(pConn->pTrc)
       return;
 
@@ -412,10 +414,10 @@ void MQIObject::get(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
 
       // v Keep going v
     default:
-      printf("MQGET Return code caused error or not recognized; mqrc:%ld\n", mqrc);
-      printf("MQGET Throwing exception; mqcc:%ld ;Name: %s\n", mqcc, getName());
-      fprintf(stderr, "MQGET Return code caused error or not recognized; mqrc:%ld\n", mqrc);
-      fprintf(stderr, "MQGET Throwing exception; mqcc:%ld ;Name: %s\n", mqcc, getName());
+      printf("MQGET Return code caused error or not recognized; mqrc:%d\n", mqrc);
+      printf("MQGET Throwing exception; mqcc:%d ;Name: %s\n", mqcc, getName());
+      fprintf(stderr, "MQGET Return code caused error or not recognized; mqrc:%d\n", mqrc);
+      fprintf(stderr, "MQGET Throwing exception; mqcc:%d ;Name: %s\n", mqcc, getName());
       throw MQIException("MQGET", mqcc, mqrc, md.CorrelId , getName());
     }
   }
@@ -466,7 +468,7 @@ MQLONG MQIObject::get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
       // v Keep going v
 
     case MQRC_NONE:
-      CPHTRACEMSG(pConn->pTrc, "Got message:\n[%s]", msg->buffer)
+      CPHTRACEMSG(pConn->pTrc, "Got message:\n[%.*s]", msg->bufferLen, msg->buffer)
       CPHTRACEEXIT(pConn->pTrc)
       return mqrc;
 
@@ -494,10 +496,10 @@ MQLONG MQIObject::get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
 
       // v Keep going v
     default:
-      printf("MQGET Return code caused error or not recognized; mqrc:%ld\n", mqrc);
-      printf("MQGET Throwing exception; mqcc:%ld ;Name: %s\n", mqcc, getName());
-      fprintf(stderr, "MQGET Return code caused error or not recognized; mqrc:%ld\n", mqrc);
-      fprintf(stderr, "MQGET Throwing exception; mqcc:%ld ;Name: %s\n", mqcc, getName());
+      printf("MQGET Return code caused error or not recognized; mqrc:%d\n", mqrc);
+      printf("MQGET Throwing exception; mqcc:%d ;Name: %s\n", mqcc, getName());
+      fprintf(stderr, "MQGET Return code caused error or not recognized; mqrc:%d\n", mqrc);
+      fprintf(stderr, "MQGET Throwing exception; mqcc:%d ;Name: %s\n", mqcc, getName());
 	  return mqrc;
 	  //throw MQIException("MQGET", mqcc, mqrc, md.CorrelId , getName());
     }
@@ -562,6 +564,7 @@ void MQIObject::createMsgHandleSelector(CPH_TRACE * pTrc, MQBYTE24 correlId) {
   memset(msgHandleOut, 0, MSG_HANDLE_SELECTOR_LEN+1);
 
   msgHandleSelector = (char *) malloc(MSG_HANDLE_SELECTOR_LEN);
+  assert(NULL != msgHandleSelector);
   memcpy(msgHandleSelector, "correlid = '", STR_CORRELID_OPEN_LEN);
   memcpy(msgHandleSelector + STR_CORRELID_OPEN_LEN, correlId, sizeof(MQBYTE24));
   memcpy(msgHandleSelector + STR_CORRELID_OPEN_LEN + sizeof(MQBYTE24), "'   ", STR_CORRELID_CLOSE_LEN);
@@ -679,7 +682,8 @@ MQISubscription::~MQISubscription() {
   if(hSub!=MQHO_NONE && hSub!=MQHO_UNUSABLE_HOBJ){
     try {
       CPHCALLMQ(pConn->pTrc, MQCLOSE, pConn->hConn, &hSub, unsubscribeOnClose ? MQCO_REMOVE_SUB : MQCO_NONE)
-    } catch (cph::MQIException) {
+    } catch (cph::MQIException &e) {
+      (void)e;
       CPHTRACEMSG(pConn->pTrc, "OOPS! MQIException in ~MQISubscription()!")
     }
   }
