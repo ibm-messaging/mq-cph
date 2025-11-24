@@ -34,10 +34,21 @@
 namespace cph {
 
 MQWTCLASSDEF(Sender,
+  static bool useCorrelId;
+  static bool useSelector, useCustomSelector;
+  static char customSelector[MQ_SELECTOR_LENGTH];
+
+  /*The queue to send messages to*/
   MQIQueue * pQueue;
 )
 
 MQWTCLASSDEF(Receiver,
+  static bool useCorrelId;
+  static bool useSelector, useCustomSelector;
+  static char customSelector[MQ_SELECTOR_LENGTH];
+  std::string adjustedClassName;
+
+  /*The queue to receive messages from*/
   MQIQueue * pQueue;
 )
 

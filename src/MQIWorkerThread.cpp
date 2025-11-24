@@ -195,16 +195,30 @@ static inline uint32_t getCorrelIdBase(CPH_TRACE * pTrc){
  *  > For compatibility with older test configurations, if no 'id' is provided,
  *    then we generate a single random id for the process, and append the WorkerThread name.
  */
+
 void MQIWorkerThread::generateCorrelID(MQBYTE24 & genCorrelId, char const * const procId){
+    CPHTRACEENTRY(pConfig->pTrc)
+    generateCorrelID(genCorrelId, procId, NULL);
+    CPHTRACEEXIT(pConfig->pTrc)
+}
+
+void MQIWorkerThread::generateCorrelID(MQBYTE24 & genCorrelId, char const * const procId, std::string const * const classNameOverride){
   CPHTRACEENTRY(pConfig->pTrc)
 
   char localproc[80];
   char procPart[24];
   char destCorrelId[25];
   size_t procIdLen = strlen(procId);
+  const std::string *clzName;
 
   memset(genCorrelId, 0, sizeof(MQBYTE24));
   strcpy(localproc, procId);
+
+  if (classNameOverride != NULL) {
+    clzName = classNameOverride;
+  } else {
+    clzName = &name;
+  }
 
   if (procIdLen == 0){
     // If no id provided, create the initial part of the correlationID
@@ -214,11 +228,11 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & genCorrelId, char const * cons
     // Now going to format it into a char[25] array and then copy the valid 24 characters into the MQBYTE24 array
     static uint32_t correlIdBase = getCorrelIdBase(pConfig->pTrc);
 
-    if (name.length() > 15) {
-      snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, name.substr(name.length() - 15, 15).data());
+    if ((*clzName).length() > 15) {
+      snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, (*clzName).substr((*clzName).length() - 15, 15).data());
       memcpy(genCorrelId, destCorrelId, 24);
     } else {
-      snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, name.data());
+      snprintf(destCorrelId, 25, "%8x-%-15s", correlIdBase, (*clzName).data());
       memcpy(genCorrelId, destCorrelId, 24);
     }
   } else {
@@ -227,10 +241,10 @@ void MQIWorkerThread::generateCorrelID(MQBYTE24 & genCorrelId, char const * cons
     // will be used to pad either end of the array if required
     string adjustedName;
     //Additional code added to avoid potentially dangling pointer of temporary value returned from substr
-    if (name.length() > 15) {
-      adjustedName = name.substr(name.length() - 15, 15);
+    if ((*clzName).length() > 15) {
+      adjustedName = (*clzName).substr((*clzName).length() - 15, 15);
     } else {
-      adjustedName = name;
+      adjustedName = (*clzName);
     }
 	  char const * const threadPart = adjustedName.data();
 

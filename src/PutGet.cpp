@@ -97,7 +97,7 @@ void PutGet::openDestination(){
 
   pQueue->open(true);
 
-  if(useCorrelId){
+  if(useCorrelId || useSelector){
     memcpy(putMD.CorrelId, correlId, sizeof(MQBYTE24));
     pmo.Options &= ~MQPMO_NEW_CORREL_ID;
   }

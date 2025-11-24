@@ -264,9 +264,15 @@ void Responder::msgOneIteration(){
     pConnection->commitTransaction();
 
   if(useCorrelId){
-    memcpy(putMD.CorrelId, useSelector ? getMD.CorrelId : getMD.MsgId, sizeof(MQBYTE24));
+    memcpy(putMD.CorrelId, getMD.MsgId, sizeof(MQBYTE24));
     cphTraceId(pConfig->pTrc, "Correlation ID", putMD.CorrelId);
   }
+  // Seperated selector logic for clarity and no longer requires co to be set
+  if(useSelector){
+    memcpy(putMD.CorrelId, getMD.CorrelId, sizeof(MQBYTE24));
+    cphTraceId(pConfig->pTrc, "Correlation ID", putMD.CorrelId);
+  }
+
 
   // Put reply
   getReplyQueue(getMD)->put(copyRequest ? getMessage : putMessage, putMD, pmo);

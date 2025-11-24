@@ -104,6 +104,7 @@ protected:
   MQBYTE24 correlId;
 
   void generateCorrelID(MQBYTE24 & genCorrelId, char const * const procId);
+  void generateCorrelID(MQBYTE24 & genCorrelId, char const * const procId, std::string const * const classNameOverride);
 
   virtual void openSession();
   virtual void closeSession();
