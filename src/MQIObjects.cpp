@@ -519,12 +519,14 @@ MQLONG MQIObject::get_try(MQIMessage * const msg, MQMD& md, MQGMO& gmo) const {
 void MQIObject::createSelector(CPH_TRACE * pTrc, MQBYTE24 correlId, char * customSelector){
   CPHTRACEENTRY(pTrc)
 
-  //Assign selection string to custom selector or to memory
-  selectionString = (customSelector == 0 ? (char *)malloc(MQ_SELECTOR_LENGTH) : customSelector);
-  assert(NULL != selectionString);
+  // Create storage for selection string
+  selectionString = (char *) malloc(MQ_SELECTOR_LENGTH);
 
-  //Convert correlId to char if not using custom selector
-  if (customSelector == 0){
+  // If customSelector(-gs) provided, use that as selection string. -cs indicates use of selectionString
+  if (customSelector != 0) {
+    strncpy(selectionString, customSelector, MQ_SELECTOR_LENGTH);
+  } else {
+    // Else convert correlId to char if not using custom selector
     int len = sprintf(selectionString, "%s", "Root.MQMD.CorrelId = \"0x");
     char * convertedId = (char *)correlId;
 
@@ -533,6 +535,7 @@ void MQIObject::createSelector(CPH_TRACE * pTrc, MQBYTE24 correlId, char * custo
     }
     strcat(selectionString, "\"");
   }
+  assert(NULL != selectionString);
 
   CPHTRACEMSG(pTrc, "Selection string: %s", selectionString)
   cphLogPrintLn(pConn->pLog, LOG_VERBOSE, "Using selection string:");
