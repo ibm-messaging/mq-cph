@@ -1,6 +1,6 @@
-/*<copyright notice="lm-source" pids="" years="2007,2022">*/
+/*<copyright notice="lm-source" pids="" years="2007,2025">*/
 /*******************************************************************************
- * Copyright (c) 2007,2021 IBM Corp.
+ * Copyright (c) 2007,2026 IBM Corp.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -572,24 +572,36 @@ char *cphUtilstrcrlfTotabcrlf(char *aString) {
 ** Returns: a pointer to the built character string or NULL, if the file indicated by fileSpec does not exist.
 **
 */
-char *cphUtilReadMsgFile(MQLONG *pSize, const char *fileSpec) { 
+char *cphUtilReadMsgFile(MQLONG *pSize, const char *fileSpec) {
    MQLONG readSize=4096;
-   *pSize = 0;
    char *msg=NULL;
+   void *ptr;
    MQLONG elementsRead = 0;
 
    FILE *msgFile = fopen(fileSpec, "rb");
 
+   *pSize = 0;
+
    if (msgFile == NULL) return NULL;
 
    do {
-      *pSize = *pSize + readSize; 
-      msg=realloc(msg, *pSize);
-      elementsRead = (MQLONG) fread(msg + *pSize - readSize, 1, readSize, msgFile);
+      *pSize = *pSize + readSize;
+      ptr=realloc(msg, *pSize);
+      if (ptr == NULL) {
+        free(msg);
+        return NULL;
+      }
+      msg = ptr;
+      elementsRead = (MQLONG)fread(msg + *pSize - readSize, 1, readSize, msgFile);
    } while(elementsRead == readSize);
 
    *pSize = *pSize - (readSize - elementsRead);
-   msg=realloc(msg, *pSize);
+   ptr=realloc(msg, *pSize);
+   if (ptr == NULL) {
+     free(msg);
+     return NULL;
+   }
+   msg = ptr;
 
    return msg;
 }
