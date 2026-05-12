@@ -88,6 +88,7 @@ public:
   MQCHAR28 applName;
   bool useChannelTable;
   char ccdtURL[512];
+  unsigned int quantumSafeAlgorithm;
 
   //Put options
   bool isPersistent;

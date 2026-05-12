@@ -112,6 +112,11 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
       configError(pConfig, "(jl) Default CipherSpec cannot be retrieved.");
     CPHTRACEMSG(pTrc, "Cipher Spec: %s", cipherSpec)
 
+    //Quantum Safe Algorithm
+    if (CPHTRUE != cphConfigGetInt(pConfig, (int*) &quantumSafeAlgorithm, "ql"))
+      configError(pConfig, "(ql) Quantum Safe Algorithm cannot be retrieved.");
+    CPHTRACEMSG(pTrc, "Quantum safe algorithm: %d", quantumSafeAlgorithm)
+
     //Key Repository
     if(CPHTRUE != cphConfigGetString(pConfig, keyRepository, sizeof(keyRepository), "kr"))
       configError(pConfig, "(kr)  KeyRepository cannot be retrieved.");
@@ -233,6 +238,15 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
         //Set CertLabel
         strncpy(protoCD.CertificateLabel, certLabel, MQ_CERT_LABEL_LENGTH);
       }
+
+      //Configure Quantum Safe Algorithm if enabled. Requires MQCD Version 13
+      if (quantumSafeAlgorithm) {
+          // Going forwards this will be the following
+          protoCD.QuantumSafeAlgorithm = (MQLONG) quantumSafeAlgorithm;
+          protoCD.QuantumSafeRequired = MQQSR_REQUIRED;
+          protoCD.Version = MQCD_VERSION_13;
+      }
+
       cd = protoCD;
       protoCNO.ClientConnPtr = &cd;
     } else {
