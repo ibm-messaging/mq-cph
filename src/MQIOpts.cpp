@@ -240,12 +240,14 @@ MQIOpts::MQIOpts(CPH_CONFIG* pConfig, bool putter, bool getter, bool reconnector
       }
 
       //Configure Quantum Safe Algorithm if enabled. Requires MQCD Version 13
+      #ifdef MQCD_VERSION_13
       if (quantumSafeAlgorithm) {
           // Going forwards this will be the following
           protoCD.QuantumSafeAlgorithm = (MQLONG) quantumSafeAlgorithm;
           protoCD.QuantumSafeRequired = MQQSR_REQUIRED;
           protoCD.Version = MQCD_VERSION_13;
       }
+      #endif
 
       cd = protoCD;
       protoCNO.ClientConnPtr = &cd;
