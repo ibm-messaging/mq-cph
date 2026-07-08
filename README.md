@@ -3,7 +3,7 @@ The IBM MQ C Performance Harness
 
 # Overview
 
-MQ-CPH (the IBM MQ C Performance Harness) is a performance test tool for [IBM® MQ](http://www-03.ibm.com/software/products/en/ibm-mq).  The source can be found on the [ibm-messaging GitHub](https://ibm-messaging.github.io/mq-cph).
+MQ-CPH (the IBM MQ C Performance Harness) is a performance test tool for [IBM® MQ](http://www-03.ibm.com/software/products/en/ibm-mq).  It provides a complete set of performance messaging functionality. It is one of the many tools used by IBM MQ Performance teams for tests ranging from a single client to more than 10,000 clients. Whilst JMSPerfHarness can be used to drive workoads on any suitable JMS messaging provider, MQ-CPH is designed to test the native proprietary IBM MQ interface (MQI).
 
 # Build
 After extracting the code from this repository, you can build an image with the latest version of MQ (and copy the executable and all required property files to an installation directory, e.g. ~/cph)
